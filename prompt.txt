@@ -1,0 +1,275 @@
+Design and build a modern, premium Apartment Booking Web Application frontend with a strong emphasis on User Experience (UX) and clean User Interface (UI).
+Technology Stack
+HTML5
+Tailwind CSS
+Vanilla JavaScript (ES6 Modules)
+REST API architecture
+Mobile-first responsive design
+No frontend framework (No React, Vue, Angular)
+Design Requirements
+The UI should feel comparable to:
+Airbnb
+Booking.com
+Expedia
+Characteristics:
+Clean
+Spacious
+Modern
+Minimalistic
+Smooth animations
+Rounded corners
+Soft shadows
+Professional typography
+Accessible
+Fast loading
+Use a consistent design system throughout.
+
+/assets
+    /css
+    /images
+    /icons
+
+/js
+    api.js
+    booking.js
+    home.js
+    apartment.js
+    auth.js
+    ui.js
+    helper.js
+
+/pages
+    apartment.html
+    checkout.html
+    payment.html
+    booking-success.html
+    login.html
+    register.html
+
+index.html
+
+JavaScript Requirements
+Every JavaScript file must contain professional comments explaining:
+purpose
+function descriptions
+parameters
+return values
+workflow
+Example:
+/**
+ * Fetch Apartment Details
+ *
+ * @param apartmentId
+ * @returns Promise
+ */
+Functions should be small.
+Reusable.
+Modular.
+
+// api.js
+
+const API = {
+
+    BASE_URL: "https://example.com/api/",
+
+    ENDPOINTS:{
+
+        apartments:"apartments",
+
+        apartment:"apartments/",
+
+        search:"apartments/search",
+
+        availability:"booking/check",
+
+        booking:"booking/create",
+
+        payment:"payment",
+
+        login:"auth/login",
+
+        register:"auth/register",
+
+        profile:"user/profile"
+
+    }
+
+};
+export default API;
+
+*******PAGE 1 ******
+Home Page
+Sections
+1 Hero
+Large background image
+Search bar
+Fields
+Destination
+Check-in
+Check-out
+Guests
+Search button
+2 Featured Apartments
+Responsive cards
+Each card shows
+Image
+Apartment name
+Location
+Rating
+Price per night
+View Details button
+
+4 Why Choose Us
+Cards
+Secure Booking
+Best Prices
+Verified Apartments
+24/7 Support
+5 Testimonials
+Slider
+6 Footer
+
+*****PAGE 2******
+Search Results
+Sections
+Left
+Filters
+Price
+Bedrooms
+Bathrooms
+Amenities
+Rating
+Right
+Responsive apartment cards
+Pagination
+Loading animation
+Empty state
+
+
+*****PAGE 3******
+Apartment Details
+Sections
+Image Gallery
+Large image
+Thumbnail gallery
+Apartment Information
+Name
+Address
+Rating
+Description
+Amenities
+House Rules
+Booking Card
+Sticky on desktop
+Contains
+Check-in
+Check-out
+Guests
+Price breakdown
+Book Now button
+Reviews
+Customer reviews
+Similar Apartments
+Horizontal cards
+BOOKING FLOW
+Click Book Now
+↓
+Open Checkout
+
+
+*****PAGE 4*****
+Checkout
+Sections
+Booking Summary
+Guest Information
+Name
+Email
+Phone
+Special Requests
+Booking Summary Card
+Subtotal
+Taxes
+Fees
+Grand Total
+Continue to Payment
+
+***Skip Payment integration***
+PAGE 6
+Booking Success
+Large Success Icon
+Booking Number
+Apartment Name
+Check-in
+Check-out
+Guest Count
+Buttons
+Download Receipt
+View My Bookings
+Return Home
+
+API FLOW
+
+GET /apartments
+
+↓
+
+GET /apartments/{id}
+
+↓
+
+POST /booking/check
+
+↓
+
+POST /booking/create
+
+↓
+
+POST /payment
+
+↓
+
+GET /booking/{id}
+
+USER EXPERIENCE
+Every action should feel smooth.
+Implement
+Loading skeletons
+Toast notifications
+Button loading states
+Image lazy loading
+Smooth scrolling
+Fade animations
+Hover effects
+Success animations
+Error handling
+Form validation
+
+Additional UI Components
+Create reusable components for:
+Navbar
+Footer
+Apartment Card
+Search Bar
+Booking Summary Card
+Toast Notification
+Loading Spinner
+Skeleton Loader
+Modal
+Confirmation Dialog
+Pagination
+Empty State
+Error State
+Coding Standards
+Semantic HTML5
+Accessible forms (ARIA labels where appropriate)
+Tailwind utility classes only (avoid custom CSS unless necessary)
+ES6 modules
+Async/await for API requests
+Centralized API configuration (api.js)
+Consistent error handling
+JSDoc comments for every function
+Clean, readable code with meaningful variable names
+Responsive across mobile, tablet, and desktop
+Separation of concerns: HTML for structure, Tailwind for styling, JavaScript for behavior
+The generated frontend should look polished enough to serve as the customer-facing interface of a real apartment booking platform, with a booking experience that feels intuitive, trustworthy, and professional from search through payment confirmation.

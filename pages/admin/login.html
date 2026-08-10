@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Login | ANTOBELL</title>
+    <meta name="description" content="ANTOBELL admin authentication." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a'
+                        },
+                        sand: '#f8fafc',
+                        ink: '#0f172a'
+                    },
+                    boxShadow: {
+                        soft: '0 20px 45px -20px rgba(15, 23, 42, 0.28)',
+                        glow: '0 12px 40px -18px rgba(59, 130, 246, 0.45)'
+                    },
+                    backgroundImage: {
+                        'admin-grid': 'radial-gradient(circle at top left, rgba(59,130,246,0.16), transparent 28%), linear-gradient(135deg, rgba(15,23,42,0.98), rgba(30,41,59,0.96))'
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+
+<body class="min-h-screen bg-slate-950 text-white antialiased">
+    <div id="app"></div>
+    <script type="module" src="../../js/admin/login.js"></script>
+</body>
+
+</html>

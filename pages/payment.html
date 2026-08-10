@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment | ANTOBELL</title>
+    <meta name="description" content="Payment step placeholder for the apartment booking flow." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a'
+                        },
+                        ink: '#0f172a'
+                    },
+                    boxShadow: {
+                        soft: '0 20px 45px -20px rgba(15, 23, 42, 0.28)',
+                        glow: '0 12px 40px -18px rgba(59, 130, 246, 0.45)'
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+
+<body class="bg-slate-50 text-slate-900 antialiased selection:bg-brand-200 selection:text-brand-900">
+    <main class="mx-auto flex min-h-screen max-w-3xl items-center px-4 py-16 sm:px-6 lg:px-8">
+        <section class="w-full rounded-[2rem] border border-slate-200 bg-white p-8 text-center shadow-soft">
+            <span
+                class="inline-flex rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">Payment
+                step</span>
+            <h1 class="mt-5 text-3xl font-semibold tracking-tight text-slate-900">Complete your payment</h1>
+            <p id="paymentStatus" class="mt-4 text-slate-600">Your booking is ready. Confirm payment to finalize your
+                reservation.</p>
+            <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+                <button id="confirmPaymentButton" type="button"
+                    class="inline-flex items-center justify-center rounded-2xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white shadow-glow transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-70">Confirm
+                    payment</button>
+                <a href="checkout.html"
+                    class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Back
+                    to checkout</a>
+            </div>
+        </section>
+    </main>
+    <script type="module" src="../js/payment.js"></script>
+</body>
+
+</html>
