@@ -9,7 +9,7 @@
  * - Use live HTTPS API: set MODE to 'live'
  */
 const ADMIN_API_CONFIG = {
-    MODE: 'local', // 'local' or 'live'
+    MODE: 'live', // 'local' or 'live'
     LIVE_BASE_URL: 'https://api.leadstar.com.ng/antobell/admin.php'
 };
 

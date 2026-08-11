@@ -1,1 +1,2 @@
-api/
+# Ignore API backend source directory from version control
+/api/

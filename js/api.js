@@ -5,20 +5,8 @@
  */
 // You can change the BASE_URL in the API object to your HTTPS endpoint.
 // For example, if your endpoint is "https://api.example.com/", you would modify the BASE_URL like this:
-// const API = {
-//     BASE_URL: 'https://api.leadstar.com.ng/antobell/',
-//     ENDPOINTS: {
-//         apartments: 'apartments',
-//         apartment: 'apartments/',
-//         availability: 'booking/check',
-//         booking: 'booking/create',
-//         payment: 'payment',
-//         bookingById: 'booking/'
-//     }
-// };
-
 const API = {
-    BASE_URL: window.location.pathname.includes('/pages/') ? '../api/' : './api/',
+    BASE_URL: 'https://api.leadstar.com.ng/antobell/',
     ENDPOINTS: {
         apartments: 'apartments',
         apartment: 'apartments/',
@@ -28,6 +16,18 @@ const API = {
         bookingById: 'booking/'
     }
 };
+
+// const API = {
+//     BASE_URL: window.location.pathname.includes('/pages/') ? '../api/' : './api/',
+//     ENDPOINTS: {
+//         apartments: 'apartments',
+//         apartment: 'apartments/',
+//         availability: 'booking/check',
+//         booking: 'booking/create',
+//         payment: 'payment',
+//         bookingById: 'booking/'
+//     }
+// };
 
 /**
  * Build an absolute API URL.
@@ -64,11 +64,17 @@ export async function request(path, options = {}) {
 
     if (!response.ok) {
         const message = payload?.message || 'Request failed';
-        throw new Error(message);
+        const requestError = new Error(message);
+        requestError.status = response.status;
+        requestError.code = payload?.code || null;
+        throw requestError;
     }
 
     if (payload && payload.success === false) {
-        throw new Error(payload.message || 'API request failed');
+        const requestError = new Error(payload.message || 'API request failed');
+        requestError.status = response.status;
+        requestError.code = payload?.code || null;
+        throw requestError;
     }
 
     return payload;

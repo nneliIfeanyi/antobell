@@ -109,19 +109,24 @@ function validateStay(stay) {
  * @returns {string} Checkout page HTML.
  */
 function buildCheckoutPage(apartment, stay) {
+    const changeDatesUrl = toPagePath(
+        'apartment.html',
+        `id=${encodeURIComponent(stay.apartmentId)}&checkIn=${encodeURIComponent(stay.checkIn)}&checkOut=${encodeURIComponent(stay.checkOut)}&guests=${encodeURIComponent(String(stay.guests || '2'))}`
+    );
+
     return `
         ${renderNavbar()}
         <main class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
             <div class="space-y-10">
                 <div class="max-w-4xl space-y-5">
-                    <div class="inline-flex items-center gap-2 rounded-full border border-brand-100 bg-white px-4 py-2 text-sm font-medium text-brand-700 shadow-sm">
+                    <!-- <div class="inline-flex items-center gap-2 rounded-full border border-brand-100 bg-white px-4 py-2 text-sm font-medium text-brand-700 shadow-sm">
                         <span class="h-2 w-2 rounded-full bg-brand-600"></span>
                         Secure checkout
-                    </div>
+                    </div> -->
                     <div>
                         <span class="text-sm font-semibold uppercase tracking-[0.22em] text-brand-700">Checkout</span>
-                        <h1 class="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Complete your details, then review your booking.</h1>
-                        <p class="mt-3 max-w-3xl text-slate-600">Your stay details were already captured on the apartment page. Provide your contact info, then confirm everything before final submission.</p>
+                        <!-- <h1 class="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl"></h1> -->
+                        <p class="mt-3 max-w-3xl text-slate-600">Complete your details, then review your booking.</p>
                     </div>
                     <div class="grid gap-3 sm:grid-cols-3">
                         <div id="stepCardUser" class="rounded-[1.25rem] border border-brand-200 bg-brand-50 px-4 py-3 shadow-sm">
@@ -149,6 +154,11 @@ function buildCheckoutPage(apartment, stay) {
                                     <button id="loginOptionButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">Login</button>
                                     <button id="registerOptionButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">Register</button>
                                 </div>
+                            </div>
+                            <div id="availabilityWarning" class="mt-5 hidden rounded-[1.25rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900" role="alert" aria-live="polite">
+                                <p class="font-semibold">Selected dates are unavailable</p>
+                                <p id="availabilityWarningText" class="mt-1 leading-6"></p>
+                                <a href="${changeDatesUrl}" class="mt-3 inline-flex items-center rounded-xl border border-rose-300 bg-white px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100">Change dates</a>
                             </div>
                             <form id="userInfoForm" class="mt-6 space-y-5">
                                 <div class="grid gap-5 sm:grid-cols-2">
@@ -225,6 +235,40 @@ function buildCheckoutPage(apartment, stay) {
                                 </div>
                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                     <button id="backToUserInfoButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Back</button>
+                                    <button id="goToSubmitStepButton" type="button" class="inline-flex items-center justify-center rounded-2xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white shadow-glow transition hover:bg-brand-700">Next</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="submitStep" class="hidden">
+                            ${renderCheckoutSectionHeader('Final submission', 'You can still go back to review before placing this booking.')}
+                            <div class="mt-6 space-y-5">
+                                <div class="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-5 text-sm leading-6 text-emerald-900">
+                                    <p class="font-semibold">Ready to place booking</p>
+                                    <p class="mt-2">Your information has been saved for this checkout session. Click Submit booking to finalize your reservation.</p>
+                                </div>
+                                <div class="rounded-[1.5rem] border border-slate-200 p-5">
+                                    <p class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-700">Guest details</p>
+                                    <div class="mt-4 grid gap-4 sm:grid-cols-2 text-sm text-slate-700">
+                                        <div>
+                                            <p class="text-slate-500">Full name</p>
+                                            <p id="submitFullName" class="mt-1 font-medium text-slate-900">-</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-slate-500">Email</p>
+                                            <p id="submitEmail" class="mt-1 font-medium text-slate-900">-</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-slate-500">Phone</p>
+                                            <p id="submitPhone" class="mt-1 font-medium text-slate-900">-</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-slate-500">Special requests</p>
+                                            <p id="submitSpecialRequests" class="mt-1 font-medium text-slate-900">None</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                    <button id="backToReviewButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Previous</button>
                                     <button id="finalSubmitButton" type="button" class="inline-flex items-center justify-center rounded-2xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white shadow-glow transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-70">Submit booking</button>
                                 </div>
                             </div>
@@ -281,18 +325,19 @@ function validateUserInfo(form) {
 /**
  * Toggle between the user information and review steps.
  *
- * @param {'user' | 'review'} step - Active step.
+ * @param {'user' | 'review' | 'submit'} step - Active step.
  * @returns {void}
  */
 function setActiveStep(step) {
     const userInfoStep = document.getElementById('userInfoStep');
     const reviewStep = document.getElementById('reviewStep');
+    const submitStep = document.getElementById('submitStep');
 
     const stepCardUser = document.getElementById('stepCardUser');
     const stepCardReview = document.getElementById('stepCardReview');
     const stepCardSubmit = document.getElementById('stepCardSubmit');
 
-    if (!userInfoStep || !reviewStep || !stepCardUser || !stepCardReview || !stepCardSubmit) {
+    if (!userInfoStep || !reviewStep || !submitStep || !stepCardUser || !stepCardReview || !stepCardSubmit) {
         return;
     }
 
@@ -312,16 +357,28 @@ function setActiveStep(step) {
     if (step === 'user') {
         userInfoStep.classList.remove('hidden');
         reviewStep.classList.add('hidden');
+        submitStep.classList.add('hidden');
         makeActive(stepCardUser);
         makeInactive(stepCardReview);
         makeInactive(stepCardSubmit);
         return;
     }
 
+    if (step === 'review') {
+        userInfoStep.classList.add('hidden');
+        reviewStep.classList.remove('hidden');
+        submitStep.classList.add('hidden');
+        makeInactive(stepCardUser);
+        makeActive(stepCardReview);
+        makeInactive(stepCardSubmit);
+        return;
+    }
+
     userInfoStep.classList.add('hidden');
-    reviewStep.classList.remove('hidden');
+    reviewStep.classList.add('hidden');
+    submitStep.classList.remove('hidden');
     makeInactive(stepCardUser);
-    makeActive(stepCardReview);
+    makeInactive(stepCardReview);
     makeActive(stepCardSubmit);
 }
 
@@ -336,6 +393,10 @@ function updateReviewDetails(userInfo) {
     const reviewEmail = document.getElementById('reviewEmail');
     const reviewPhone = document.getElementById('reviewPhone');
     const reviewSpecialRequests = document.getElementById('reviewSpecialRequests');
+    const submitFullName = document.getElementById('submitFullName');
+    const submitEmail = document.getElementById('submitEmail');
+    const submitPhone = document.getElementById('submitPhone');
+    const submitSpecialRequests = document.getElementById('submitSpecialRequests');
 
     if (reviewFullName) {
         reviewFullName.textContent = userInfo.fullName;
@@ -352,6 +413,22 @@ function updateReviewDetails(userInfo) {
     if (reviewSpecialRequests) {
         reviewSpecialRequests.textContent = userInfo.specialRequests || 'None';
     }
+
+    if (submitFullName) {
+        submitFullName.textContent = userInfo.fullName;
+    }
+
+    if (submitEmail) {
+        submitEmail.textContent = userInfo.email;
+    }
+
+    if (submitPhone) {
+        submitPhone.textContent = userInfo.phone;
+    }
+
+    if (submitSpecialRequests) {
+        submitSpecialRequests.textContent = userInfo.specialRequests || 'None';
+    }
 }
 
 /**
@@ -365,6 +442,48 @@ function persistCheckoutDraft(checkoutDraft) {
 }
 
 /**
+ * Build a user-friendly overlap message for selected stay dates.
+ *
+ * @param {Object} stay - Stay details.
+ * @returns {string} Overlap feedback text.
+ */
+function overlapFeedbackMessage(stay) {
+    return `These dates overlap an existing reservation (${stay.checkIn} to ${stay.checkOut}). Please choose different dates or another apartment.`;
+}
+
+/**
+ * Show the inline availability warning block on step 1.
+ *
+ * @param {string} message - Warning message to display.
+ * @returns {void}
+ */
+function showAvailabilityWarning(message) {
+    const warning = document.getElementById('availabilityWarning');
+    const warningText = document.getElementById('availabilityWarningText');
+
+    if (!warning || !warningText) {
+        return;
+    }
+
+    warningText.textContent = message;
+    warning.classList.remove('hidden');
+}
+
+/**
+ * Hide the inline availability warning block.
+ *
+ * @returns {void}
+ */
+function hideAvailabilityWarning() {
+    const warning = document.getElementById('availabilityWarning');
+    if (!warning) {
+        return;
+    }
+
+    warning.classList.add('hidden');
+}
+
+/**
  * Bind interactions for checkout steps and final submission.
  *
  * @param {Object} apartment - Apartment data object.
@@ -374,11 +493,14 @@ function persistCheckoutDraft(checkoutDraft) {
 function bindCheckoutFlow(apartment, stay) {
     const userInfoForm = document.getElementById('userInfoForm');
     const backToUserInfoButton = document.getElementById('backToUserInfoButton');
+    const backToReviewButton = document.getElementById('backToReviewButton');
+    const goToSubmitStepButton = document.getElementById('goToSubmitStepButton');
     const finalSubmitButton = document.getElementById('finalSubmitButton');
+    const continueToReviewButton = document.getElementById('continueToReviewButton');
     const loginOptionButton = document.getElementById('loginOptionButton');
     const registerOptionButton = document.getElementById('registerOptionButton');
 
-    if (!userInfoForm || !backToUserInfoButton || !finalSubmitButton) {
+    if (!userInfoForm || !backToUserInfoButton || !backToReviewButton || !goToSubmitStepButton || !finalSubmitButton || !continueToReviewButton) {
         return;
     }
 
@@ -391,6 +513,9 @@ function bindCheckoutFlow(apartment, stay) {
     }
 
     let activeUserInfo = savedUserDraft || null;
+    if (activeUserInfo) {
+        updateReviewDetails(activeUserInfo);
+    }
 
     if (loginOptionButton) {
         loginOptionButton.addEventListener('click', () => {
@@ -404,7 +529,7 @@ function bindCheckoutFlow(apartment, stay) {
         });
     }
 
-    userInfoForm.addEventListener('submit', (event) => {
+    userInfoForm.addEventListener('submit', async (event) => {
         event.preventDefault();
 
         const validation = validateUserInfo(userInfoForm);
@@ -412,6 +537,35 @@ function bindCheckoutFlow(apartment, stay) {
             showToast(validation.message, 'error');
             return;
         }
+
+        continueToReviewButton.setAttribute('disabled', 'disabled');
+        const originalContinueText = continueToReviewButton.textContent;
+        continueToReviewButton.textContent = 'Checking availability...';
+
+        try {
+            const availability = await checkBookingAvailability({
+                apartmentId: stay.apartmentId,
+                checkIn: stay.checkIn,
+                checkOut: stay.checkOut
+            });
+
+            if (!availability?.available) {
+                const unavailableMessage = availability?.reason === 'date_overlap'
+                    ? overlapFeedbackMessage(stay)
+                    : 'Selected dates are no longer available. Please change your dates and try again.';
+                showAvailabilityWarning(unavailableMessage);
+                continueToReviewButton.removeAttribute('disabled');
+                continueToReviewButton.textContent = originalContinueText;
+                return;
+            }
+        } catch (error) {
+            showToast('Unable to confirm date availability right now. Please try again.', 'error');
+            continueToReviewButton.removeAttribute('disabled');
+            continueToReviewButton.textContent = originalContinueText;
+            return;
+        }
+
+        hideAvailabilityWarning();
 
         const formData = new FormData(userInfoForm);
         activeUserInfo = {
@@ -424,10 +578,28 @@ function bindCheckoutFlow(apartment, stay) {
         window.sessionStorage.setItem('guestDraft', JSON.stringify(activeUserInfo));
         updateReviewDetails(activeUserInfo);
         setActiveStep('review');
+
+        continueToReviewButton.removeAttribute('disabled');
+        continueToReviewButton.textContent = originalContinueText;
     });
 
     backToUserInfoButton.addEventListener('click', () => {
         setActiveStep('user');
+    });
+
+    goToSubmitStepButton.addEventListener('click', () => {
+        if (!activeUserInfo) {
+            showToast('Please complete Step 1 first.', 'error');
+            setActiveStep('user');
+            return;
+        }
+
+        updateReviewDetails(activeUserInfo);
+        setActiveStep('submit');
+    });
+
+    backToReviewButton.addEventListener('click', () => {
+        setActiveStep('review');
     });
 
     finalSubmitButton.addEventListener('click', async () => {
@@ -442,20 +614,6 @@ function bindCheckoutFlow(apartment, stay) {
         finalSubmitButton.textContent = 'Submitting booking...';
 
         try {
-            const availability = await checkBookingAvailability({
-                apartmentId: stay.apartmentId,
-                checkIn: stay.checkIn,
-                checkOut: stay.checkOut
-            });
-
-            if (!availability?.available) {
-                showToast('Selected dates are no longer available. Please return and choose different dates.', 'error');
-                finalSubmitButton.disabled = false;
-                finalSubmitButton.textContent = originalText;
-                setActiveStep('user');
-                return;
-            }
-
             const createdBooking = await createBooking({
                 apartmentId: stay.apartmentId,
                 guestName: activeUserInfo.fullName,
@@ -467,7 +625,7 @@ function bindCheckoutFlow(apartment, stay) {
                 guests: Number(stay.guests || 1)
             });
 
-            const dueAt = new Date(Date.now() + (12 * 60 * 60 * 1000)).toISOString();
+            const dueAt = new Date(Date.now() + (3 * 60 * 60 * 1000)).toISOString();
             persistCheckoutDraft({
                 apartmentId: stay.apartmentId,
                 apartmentName: apartment.name,
@@ -490,7 +648,16 @@ function bindCheckoutFlow(apartment, stay) {
             window.sessionStorage.removeItem('guestDraft');
             window.location.href = toPagePath('booking-success.html', `apartmentId=${encodeURIComponent(stay.apartmentId)}&bookingNumber=${encodeURIComponent(createdBooking?.bookingNumber || '')}`);
         } catch (error) {
-            showToast(error instanceof Error ? error.message : 'Unable to submit booking. Please try again.', 'error');
+            const isOverlapConflict =
+                error instanceof Error &&
+                ((typeof error.status === 'number' && error.status === 409) || error.code === 'DATE_OVERLAP');
+
+            if (isOverlapConflict) {
+                showAvailabilityWarning(overlapFeedbackMessage(stay));
+                setActiveStep('user');
+            } else {
+                showToast(error instanceof Error ? error.message : 'Unable to submit booking. Please try again.', 'error');
+            }
             finalSubmitButton.disabled = false;
             finalSubmitButton.textContent = originalText;
         }

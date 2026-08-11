@@ -52,7 +52,7 @@ function formatDateTime(isoDate) {
   const parsed = new Date(isoDate);
 
   if (Number.isNaN(parsed.getTime())) {
-    return 'Within 12 hours';
+    return 'Within 3 hours';
   }
 
   return new Intl.DateTimeFormat('en-NG', {
@@ -71,7 +71,7 @@ function formatDateTime(isoDate) {
  */
 function buildSuccessPage(apartment, bookingDraft, bookingNumber) {
   const guests = Number(bookingDraft.guests || 2);
-  const paymentDueAt = bookingDraft.paymentDueAt || new Date(Date.now() + (12 * 60 * 60 * 1000)).toISOString();
+  const paymentDueAt = bookingDraft.paymentDueAt || new Date(Date.now() + (3 * 60 * 60 * 1000)).toISOString();
 
   return `
     ${renderNavbar()}
@@ -80,7 +80,7 @@ function buildSuccessPage(apartment, bookingDraft, bookingNumber) {
         <div class="bg-hero-pattern px-6 py-10 text-center sm:px-10 sm:py-14">
           <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50 text-3xl text-emerald-600 shadow-soft animate-popIn">✓</div>
           <h1 class="mt-6 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Booking received and reserved</h1>
-          <p class="mt-3 text-slate-600">Your reservation hold is active. Complete onsite payment within 12 hours to keep this booking.</p>
+          <p class="mt-3 text-slate-600">Your reservation hold is active. Complete onsite payment within 3 hours to keep this booking.</p>
         </div>
         <div class="grid gap-8 px-6 py-8 sm:px-10 lg:grid-cols-[1.1fr_0.9fr]">
           <div class="space-y-6">
@@ -92,7 +92,7 @@ function buildSuccessPage(apartment, bookingDraft, bookingNumber) {
             <div class="rounded-[1.75rem] border border-rose-200 bg-rose-50 p-6">
               <p class="text-sm font-semibold uppercase tracking-[0.2em] text-rose-700">Payment deadline</p>
               <p class="mt-2 text-xl font-semibold text-rose-900">${formatDateTime(paymentDueAt)}</p>
-              <p class="mt-2 text-sm text-rose-800">If payment is not made onsite within 12 hours, this booking will be revoked automatically.</p>
+              <p class="mt-2 text-sm text-rose-800">If payment is not made onsite within 3 hours, this booking will be revoked automatically.</p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="rounded-[1.5rem] border border-slate-200 p-5">
