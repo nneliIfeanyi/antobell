@@ -69,15 +69,24 @@ export function renderAdminHeader(config) {
                     </div>
                 </div>
 
-                <div id="adminMobileMenu" class="mt-4 hidden rounded-2xl border border-slate-200 bg-white p-3 md:hidden" data-admin-menu-panel>
+                <div class="pointer-events-none fixed inset-0 z-40 hidden bg-slate-950/45 md:hidden" data-admin-menu-overlay></div>
+                <aside id="adminMobileMenu" class="fixed right-0 top-0 z-50 flex h-screen w-[86%] max-w-xs translate-x-full flex-col border-l border-slate-200 bg-white p-4 shadow-2xl transition-transform duration-300 ease-out md:hidden" data-admin-menu-panel aria-hidden="true">
+                    <div class="mb-4 flex items-center justify-between">
+                        <p class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-700">Menu</p>
+                        <button type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50" data-admin-menu-close-button aria-label="Close admin menu">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
                     <nav class="grid gap-2">
                         ${navLinksMarkup(activeView)}
                     </nav>
-                    <div class="mt-3 border-t border-slate-200 pt-3">
+                    <div class="mt-4 border-t border-slate-200 pt-4">
                         ${adminName ? `<p class="mb-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">Signed in as ${adminName}</p>` : ''}
                         <button type="button" data-admin-logout class="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Logout</button>
                     </div>
-                </div>
+                </aside>
             </div>
         </header>
     `;
@@ -89,14 +98,24 @@ export function renderAdminHeader(config) {
 export function bindAdminMobileMenu() {
     const toggleButton = document.querySelector('[data-admin-menu-toggle]');
     const menuPanel = document.querySelector('[data-admin-menu-panel]');
+    const overlay = document.querySelector('[data-admin-menu-overlay]');
+    const closeButton = document.querySelector('[data-admin-menu-close-button]');
 
-    if (!(toggleButton instanceof HTMLButtonElement) || !(menuPanel instanceof HTMLElement)) {
+    if (
+        !(toggleButton instanceof HTMLButtonElement)
+        || !(menuPanel instanceof HTMLElement)
+        || !(overlay instanceof HTMLElement)
+    ) {
         return;
     }
 
     const setExpanded = (isExpanded) => {
         toggleButton.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
-        menuPanel.classList.toggle('hidden', !isExpanded);
+        menuPanel.setAttribute('aria-hidden', isExpanded ? 'false' : 'true');
+        menuPanel.classList.toggle('translate-x-full', !isExpanded);
+        overlay.classList.toggle('hidden', !isExpanded);
+        overlay.classList.toggle('pointer-events-none', !isExpanded);
+        document.body.classList.toggle('overflow-hidden', isExpanded);
     };
 
     setExpanded(false);
@@ -113,6 +132,20 @@ export function bindAdminMobileMenu() {
         }
 
         if (target.closest('[data-admin-menu-close]')) {
+            setExpanded(false);
+        }
+    });
+
+    closeButton?.addEventListener('click', () => {
+        setExpanded(false);
+    });
+
+    overlay.addEventListener('click', () => {
+        setExpanded(false);
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && toggleButton.getAttribute('aria-expanded') === 'true') {
             setExpanded(false);
         }
     });

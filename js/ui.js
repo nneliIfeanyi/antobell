@@ -416,6 +416,8 @@ export function renderTestimonials(items = null) {
  * @returns {string} Footer HTML.
  */
 export function renderFooter() {
+  const currentYear = new Date().getFullYear();
+
   return `
     <footer class="border-t border-slate-200 bg-slate-950 text-slate-300">
       <div class="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-3 lg:px-8">
@@ -437,9 +439,22 @@ export function renderFooter() {
         </div>
         <div class="space-y-3">
           <h3 class="text-sm font-semibold uppercase tracking-[0.22em] text-slate-400">Support</h3>
-          <p class="text-sm leading-6 text-slate-400">help@antobell.com</p>
-          <p class="text-sm leading-6 text-slate-400">+1 (555) 019-2026</p>
+          <a href="mailto:help@antobell.com" class="flex items-center gap-2 text-sm leading-6 text-slate-400 transition hover:text-white">
+            <i class="bi bi-envelope" aria-hidden="true"></i>
+            <span>help@antobell.com</span>
+          </a>
+          <a href="tel:+15550192026" class="flex items-center gap-2 text-sm leading-6 text-slate-400 transition hover:text-white">
+            <i class="bi bi-telephone" aria-hidden="true"></i>
+            <span>+1 (555) 019-2026</span>
+          </a>
+          <a href="https://wa.me/2348012345678" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-sm leading-6 text-slate-400 transition hover:text-white">
+            <i class="bi bi-whatsapp" aria-hidden="true"></i>
+            <span>WhatsApp: +234 801 234 5678</span>
+          </a>
         </div>
+      </div>
+      <div class="border-t border-slate-800/80">
+        <p class="mx-auto max-w-7xl px-4 py-5 text-center text-sm text-slate-400 sm:px-6 lg:px-8">ANTOBELL &copy; ${currentYear}. All rights reserved.</p>
       </div>
     </footer>
   `;
