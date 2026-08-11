@@ -49,15 +49,28 @@ export async function adminRequest(route, options = {}) {
         });
     }
 
-    const response = await fetch(url.toString(), {
-        // 'include' is needed when MODE='live' and auth cookies come from another origin.
-        credentials: url.origin === window.location.origin ? 'same-origin' : 'include',
-        headers: {
-            'Content-Type': 'application/json',
-            ...(options.headers || {})
-        },
-        ...options
-    });
+    const requestHeaders = {
+        ...(options.headers || {})
+    };
+
+    // Avoid forcing Content-Type on requests without body to reduce unnecessary CORS preflight noise.
+    if (options.body !== undefined && options.body !== null && !('Content-Type' in requestHeaders)) {
+        requestHeaders['Content-Type'] = 'application/json';
+    }
+
+    let response;
+    try {
+        response = await fetch(url.toString(), {
+            // 'include' is needed when MODE='live' and auth cookies come from another origin.
+            credentials: url.origin === window.location.origin ? 'same-origin' : 'include',
+            ...options,
+            headers: requestHeaders
+        });
+    } catch (error) {
+        const requestError = new Error('Unable to reach live admin API. Check CORS (Access-Control-Allow-Credentials with non-wildcard origin), HTTPS, and network availability.');
+        requestError.status = 0;
+        throw requestError;
+    }
 
     let payload = null;
     try {
