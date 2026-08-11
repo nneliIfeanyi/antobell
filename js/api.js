@@ -10,6 +10,7 @@ const API = {
     ENDPOINTS: {
         apartments: 'apartments',
         apartment: 'apartments/',
+        publicSettings: 'settings/public',
         availability: 'booking/check',
         booking: 'booking/create',
         payment: 'payment',
@@ -235,6 +236,16 @@ export async function getBookingById(bookingRef) {
     } catch (error) {
         return null;
     }
+}
+
+/**
+ * Fetch public-facing site settings (testimonials and booking policy).
+ *
+ * @returns {Promise<Object>} Public settings payload.
+ */
+export async function getPublicSettings() {
+    const data = await request(API.ENDPOINTS.publicSettings);
+    return data?.data || { unpaidRevokeHours: 3, testimonials: [] };
 }
 
 export default API;

@@ -15,7 +15,8 @@ function navLinksMarkup(activeView) {
         { key: 'dashboard', label: 'Dashboard', href: './index.html' },
         { key: 'bookings', label: 'Bookings', href: './bookings.html' },
         { key: 'payments', label: 'Payments', href: './payments.html' },
-        { key: 'apartments', label: 'Apartments', href: './apartments.html' }
+        { key: 'apartments', label: 'Apartments', href: './apartments.html' },
+        { key: 'settings', label: 'Settings', href: './settings.html' }
     ];
 
     return links.map((link) => {

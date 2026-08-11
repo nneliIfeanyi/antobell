@@ -363,41 +363,38 @@ export function renderWhyChooseUs() {
  *
  * @returns {string} Testimonials HTML.
  */
-export function renderTestimonials() {
-  const testimonials = [
-    {
-      name: 'Maya Chen',
-      role: 'Frequent traveler',
-      quote: 'The booking flow feels premium and clear. I found a stay in less than a minute.'
-    },
-    {
-      name: 'Omar Reed',
-      role: 'Business traveler',
-      quote: 'It looks polished, loads quickly, and the pricing is easy to trust.'
-    },
-    {
-      name: 'Sofia Alvarez',
-      role: 'Weekend planner',
-      quote: 'The layout is calm and intuitive. It feels like a real hospitality brand.'
-    }
-  ];
+export function renderTestimonials(items = null) {
+  const testimonials = Array.isArray(items) && items.length
+    ? items
+    : [
+      {
+        name: 'Maya Chen',
+        role: 'Frequent traveler',
+        quote: 'The booking flow feels premium and clear. I found a stay in less than a minute.'
+      },
+      {
+        name: 'Omar Reed',
+        role: 'Business traveler',
+        quote: 'It looks polished, loads quickly, and the pricing is easy to trust.'
+      },
+      {
+        name: 'Sofia Alvarez',
+        role: 'Weekend planner',
+        quote: 'The layout is calm and intuitive. It feels like a real hospitality brand.'
+      }
+    ];
 
   return `
     <section id="testimonials" class="mx-auto max-w-7xl scroll-mt-28 px-4 py-20 sm:px-6 lg:px-8">
-      <div class="flex items-end justify-between gap-4">
+      <div>
         <div>
           <span class="text-sm font-semibold uppercase tracking-[0.22em] text-brand-700">Testimonials</span>
           <h2 class="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Loved by guests who value ease and quality.</h2>
         </div>
-        <div class="hidden items-center gap-2 sm:flex">
-          <button type="button" id="testimonialsPrev" class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50" aria-label="Previous testimonial">Previous</button>
-          <button type="button" id="testimonialsNext" class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50" aria-label="Next testimonial">Next</button>
-        </div>
       </div>
-      <div class="mt-10 overflow-hidden rounded-[1.5rem]">
-        <div id="testimonialsTrack" class="flex transition-transform duration-500 ease-out">
-          ${testimonials.map((testimonial) => `
-          <blockquote class="min-w-full rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-soft">
+      <div class="mt-10 grid gap-6 lg:grid-cols-3">
+        ${testimonials.map((testimonial) => `
+          <blockquote class="rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-soft">
             <p class="text-base leading-7 text-slate-700">“${testimonial.quote}”</p>
             <footer class="mt-6 flex items-center gap-4">
               <div class="flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 font-semibold text-brand-700">${testimonial.name.charAt(0)}</div>
@@ -407,12 +404,6 @@ export function renderTestimonials() {
               </div>
             </footer>
           </blockquote>
-        `).join('')}
-        </div>
-      </div>
-      <div class="mt-5 flex items-center justify-center gap-2">
-        ${testimonials.map((_, index) => `
-          <button type="button" class="h-2.5 w-2.5 rounded-full ${index === 0 ? 'bg-brand-600' : 'bg-slate-300'}" data-testimonial-dot="${index}" aria-label="Go to testimonial ${index + 1}"></button>
         `).join('')}
       </div>
     </section>

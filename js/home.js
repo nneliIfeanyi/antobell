@@ -5,7 +5,7 @@
  * interactions, loading states, and toast feedback for the first booking screen.
  */
 
-import { getFeaturedApartments, searchApartments } from './api.js';
+import { getFeaturedApartments, getPublicSettings, searchApartments } from './api.js';
 import {
     renderApp,
     renderApartmentCard,
@@ -24,7 +24,6 @@ import { toPagePath } from './helper.js';
 import { showToast } from './toast.js';
 
 const app = document.getElementById('app');
-const TESTIMONIAL_AUTOPLAY_MS = 4500;
 const HERO_AUTOPLAY_MS = 5000;
 
 /**
@@ -32,7 +31,7 @@ const HERO_AUTOPLAY_MS = 5000;
  *
  * @returns {string} Complete homepage HTML.
  */
-function buildHomePage() {
+function buildHomePage(testimonials = []) {
     return `
     ${renderNavbar()}
     <main>
@@ -40,7 +39,7 @@ function buildHomePage() {
       ${renderSearchBar()}
       ${renderFeaturedSection()}
       ${renderWhyChooseUs()}
-      ${renderTestimonials()}
+            ${renderTestimonials(testimonials)}
     </main>
     ${renderFooter()}
     <div id="toastRegion" class="pointer-events-none fixed bottom-5 right-5 z-[60] flex flex-col gap-3"></div>
@@ -147,68 +146,6 @@ function bindSearchForm() {
             searchButton.textContent = originalText;
         }
     });
-}
-
-/**
- * Initialize testimonial slider controls and autoplay behavior.
- *
- * @returns {void}
- */
-function bindTestimonialsSlider() {
-    const track = document.getElementById('testimonialsTrack');
-    const previousButton = document.getElementById('testimonialsPrev');
-    const nextButton = document.getElementById('testimonialsNext');
-    const dots = Array.from(document.querySelectorAll('[data-testimonial-dot]'));
-
-    if (!track || !dots.length) {
-        return;
-    }
-
-    let currentIndex = 0;
-    const totalSlides = dots.length;
-    let autoplayId;
-
-    const updateSlider = (index) => {
-        currentIndex = (index + totalSlides) % totalSlides;
-        track.style.transform = `translateX(-${currentIndex * 100}%)`;
-        dots.forEach((dot, dotIndex) => {
-            dot.classList.toggle('bg-brand-600', dotIndex === currentIndex);
-            dot.classList.toggle('bg-slate-300', dotIndex !== currentIndex);
-        });
-    };
-
-    const startAutoplay = () => {
-        autoplayId = window.setInterval(() => {
-            updateSlider(currentIndex + 1);
-        }, TESTIMONIAL_AUTOPLAY_MS);
-    };
-
-    const resetAutoplay = () => {
-        if (autoplayId) {
-            window.clearInterval(autoplayId);
-        }
-        startAutoplay();
-    };
-
-    previousButton?.addEventListener('click', () => {
-        updateSlider(currentIndex - 1);
-        resetAutoplay();
-    });
-
-    nextButton?.addEventListener('click', () => {
-        updateSlider(currentIndex + 1);
-        resetAutoplay();
-    });
-
-    dots.forEach((dot, dotIndex) => {
-        dot.addEventListener('click', () => {
-            updateSlider(dotIndex);
-            resetAutoplay();
-        });
-    });
-
-    updateSlider(0);
-    startAutoplay();
 }
 
 /**
@@ -342,10 +279,17 @@ function bindHeroSlider() {
  * @returns {Promise<void>} Initialization promise.
  */
 async function initHomePage() {
-    renderApp(app, buildHomePage());
+    let publicSettings = { testimonials: [] };
+
+    try {
+        publicSettings = await getPublicSettings();
+    } catch (error) {
+        publicSettings = { testimonials: [] };
+    }
+
+    renderApp(app, buildHomePage(Array.isArray(publicSettings.testimonials) ? publicSettings.testimonials : []));
     bindSearchForm();
     bindHeroSlider();
-    bindTestimonialsSlider();
     renderLoadingState();
 
     const apartments = await getFeaturedApartments();

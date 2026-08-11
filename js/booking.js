@@ -625,7 +625,8 @@ function bindCheckoutFlow(apartment, stay) {
                 guests: Number(stay.guests || 1)
             });
 
-            const dueAt = new Date(Date.now() + (3 * 60 * 60 * 1000)).toISOString();
+            const unpaidRevokeHours = Number(createdBooking?.unpaidRevokeHours || 3);
+            const dueAt = new Date(Date.now() + (unpaidRevokeHours * 60 * 60 * 1000)).toISOString();
             persistCheckoutDraft({
                 apartmentId: stay.apartmentId,
                 apartmentName: apartment.name,
@@ -642,7 +643,8 @@ function bindCheckoutFlow(apartment, stay) {
                 taxes: Number(createdBooking?.taxes || 0),
                 fees: Number(createdBooking?.fees || 0),
                 totalAmount: Number(createdBooking?.totalAmount || 0),
-                paymentDueAt: dueAt
+                paymentDueAt: dueAt,
+                unpaidRevokeHours,
             });
 
             window.sessionStorage.removeItem('guestDraft');

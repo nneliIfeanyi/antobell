@@ -235,3 +235,49 @@ export function hardDeleteAdminApartment(publicId, confirmationText) {
         body: JSON.stringify({ confirmationText })
     });
 }
+
+export function getAdminSettingsBundle() {
+    return adminRequest('settings');
+}
+
+export function updateUnpaidRevokeHours(hours) {
+    return adminRequest('settings/unpaid-window', {
+        method: 'POST',
+        body: JSON.stringify({ hours })
+    });
+}
+
+export function createAdminUser(payload) {
+    return adminRequest('settings/admin-users', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+    });
+}
+
+export function updateAdminUserPassword(adminUserId, payload) {
+    return adminRequest(`settings/admin-users/${encodeURIComponent(String(adminUserId))}/password`, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+    });
+}
+
+export function createAdminTestimonial(payload) {
+    return adminRequest('settings/testimonials', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+    });
+}
+
+export function updateAdminTestimonial(testimonialId, payload) {
+    return adminRequest(`settings/testimonials/${encodeURIComponent(String(testimonialId))}`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload)
+    });
+}
+
+export function deleteAdminTestimonial(testimonialId) {
+    return adminRequest(`settings/testimonials/${encodeURIComponent(String(testimonialId))}`, {
+        method: 'DELETE',
+        body: JSON.stringify({})
+    });
+}

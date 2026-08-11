@@ -3,7 +3,6 @@
  */
 
 import {
-    changeAdminPassword,
     getCurrentAdmin,
     getDashboardSummary,
     getPendingPaymentBookings,
@@ -31,6 +30,10 @@ function adminBookingsPath() {
 
 function adminPaymentsPath() {
     return './payments.html';
+}
+
+function adminSettingsPath() {
+    return './settings.html';
 }
 
 function formatDateTime(value) {
@@ -146,40 +149,7 @@ function buildDashboardPage(admin, summaryData, queueData) {
                                     <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">No pending-payment bookings in queue.</div>
                                 `}
                             </div>
-                        </article>
-                        <article class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
-                            <p class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-700">Phase 1 status</p>
-                            <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Admin foundation is live</h2>
-                            <ul class="mt-4 space-y-3 text-sm leading-6 text-slate-600">
-                                <li>Separate admin API entrypoint with session-based authentication.</li>
-                                <li>Dedicated admin login and protected dashboard pages.</li>
-                                <li>Single-admin model for now with no role complexity.</li>
-                            </ul>
-                        </article>
-                        <article class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
-                            <p class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-700">Security</p>
-                            <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Change admin password</h2>
-                            <p class="mt-2 text-sm leading-6 text-slate-600">Rotate the seeded development password immediately for safer local access.</p>
-                            <form id="adminPasswordForm" class="mt-5 space-y-3">
-                                <label class="block space-y-2">
-                                    <span class="text-sm font-medium text-slate-700">Current password</span>
-                                    <input name="currentPassword" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500" required aria-label="Current password" />
-                                </label>
-                                <label class="block space-y-2">
-                                    <span class="text-sm font-medium text-slate-700">New password</span>
-                                    <input name="newPassword" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500" minlength="10" required aria-label="New password" />
-                                </label>
-                                <label class="block space-y-2">
-                                    <span class="text-sm font-medium text-slate-700">Confirm new password</span>
-                                    <input name="confirmPassword" type="password" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500" minlength="10" required aria-label="Confirm new password" />
-                                </label>
-                                <button id="changePasswordButton" type="submit" class="inline-flex items-center justify-center rounded-2xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-glow transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-70">Update password</button>
-                            </form>
-                        </article>
-                        <article class="rounded-[2rem] border border-slate-200 bg-slate-900 p-6 text-white shadow-soft">
-                            <p class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-200">Active module</p>
-                            <h2 class="mt-2 text-2xl font-semibold tracking-tight">Onsite payment operations</h2>
-                            <p class="mt-4 text-sm leading-6 text-slate-300">Use the queue actions to mark bookings paid onsite and push them from pending_payment to confirmed instantly.</p>
+                            <a href="${adminSettingsPath()}" class="mt-5 inline-flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Open site settings</a>
                         </article>
                     </aside>
                 </section>
@@ -210,59 +180,6 @@ function bindLogout() {
                 showToast(error instanceof Error ? error.message : 'Unable to log out.', 'error');
             }
         });
-    });
-}
-
-function bindPasswordChange() {
-    const passwordForm = document.getElementById('adminPasswordForm');
-    const submitButton = document.getElementById('changePasswordButton');
-
-    if (!passwordForm || !submitButton) {
-        return;
-    }
-
-    passwordForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        const formData = new FormData(passwordForm);
-        const currentPassword = String(formData.get('currentPassword') || '');
-        const newPassword = String(formData.get('newPassword') || '');
-        const confirmPassword = String(formData.get('confirmPassword') || '');
-
-        if (!currentPassword || !newPassword || !confirmPassword) {
-            showToast('Complete all password fields before submitting.', 'error');
-            return;
-        }
-
-        if (newPassword.length < 10) {
-            showToast('New password must be at least 10 characters long.', 'error');
-            return;
-        }
-
-        if (newPassword !== confirmPassword) {
-            showToast('New password and confirmation must match.', 'error');
-            return;
-        }
-
-        submitButton.setAttribute('disabled', 'disabled');
-        const originalText = submitButton.textContent;
-        submitButton.textContent = 'Updating...';
-
-        try {
-            await changeAdminPassword({
-                currentPassword,
-                newPassword,
-                confirmPassword,
-            });
-
-            passwordForm.reset();
-            showToast('Password updated successfully.', 'success');
-        } catch (error) {
-            showToast(error instanceof Error ? error.message : 'Unable to update password.', 'error');
-        } finally {
-            submitButton.removeAttribute('disabled');
-            submitButton.textContent = originalText;
-        }
     });
 }
 
@@ -342,7 +259,6 @@ async function refreshDashboard() {
         bindAdminMobileMenu();
         enhanceResponsiveTables('#recentBookingsTable');
         bindLogout();
-        bindPasswordChange();
         bindPendingQueueActions();
     }
 }

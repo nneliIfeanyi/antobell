@@ -5,7 +5,7 @@
  * details, and provides next-step actions after checkout.
  */
 
-import { getApartmentById } from './api.js';
+import { getApartmentById, getPublicSettings } from './api.js';
 import { formatCurrency, formatRating, toHomePath, toPagePath } from './helper.js';
 import { renderApp, renderEmptyState, renderErrorState, renderFooter, renderNavbar } from './ui.js';
 
@@ -48,11 +48,11 @@ function getBookingDraft() {
  * @param {string} isoDate - ISO date string.
  * @returns {string} Formatted date and time.
  */
-function formatDateTime(isoDate) {
+function formatDateTime(isoDate, unpaidRevokeHours = 3) {
   const parsed = new Date(isoDate);
 
   if (Number.isNaN(parsed.getTime())) {
-    return 'Within 3 hours';
+    return `Within ${unpaidRevokeHours} hours`;
   }
 
   return new Intl.DateTimeFormat('en-NG', {
@@ -69,9 +69,9 @@ function formatDateTime(isoDate) {
  * @param {string} bookingNumber - Booking number.
  * @returns {string} Success page HTML.
  */
-function buildSuccessPage(apartment, bookingDraft, bookingNumber) {
+function buildSuccessPage(apartment, bookingDraft, bookingNumber, unpaidRevokeHours) {
   const guests = Number(bookingDraft.guests || 2);
-  const paymentDueAt = bookingDraft.paymentDueAt || new Date(Date.now() + (3 * 60 * 60 * 1000)).toISOString();
+  const paymentDueAt = bookingDraft.paymentDueAt || new Date(Date.now() + (Number(unpaidRevokeHours || 3) * 60 * 60 * 1000)).toISOString();
 
   return `
     ${renderNavbar()}
@@ -80,7 +80,7 @@ function buildSuccessPage(apartment, bookingDraft, bookingNumber) {
         <div class="bg-hero-pattern px-6 py-10 text-center sm:px-10 sm:py-14">
           <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50 text-3xl text-emerald-600 shadow-soft animate-popIn">✓</div>
           <h1 class="mt-6 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Booking received and reserved</h1>
-          <p class="mt-3 text-slate-600">Your reservation hold is active. Complete onsite payment within 3 hours to keep this booking.</p>
+          <p class="mt-3 text-slate-600">Your reservation hold is active. Complete onsite payment within ${unpaidRevokeHours} hours to keep this booking.</p>
         </div>
         <div class="grid gap-8 px-6 py-8 sm:px-10 lg:grid-cols-[1.1fr_0.9fr]">
           <div class="space-y-6">
@@ -91,8 +91,8 @@ function buildSuccessPage(apartment, bookingDraft, bookingNumber) {
             </div>
             <div class="rounded-[1.75rem] border border-rose-200 bg-rose-50 p-6">
               <p class="text-sm font-semibold uppercase tracking-[0.2em] text-rose-700">Payment deadline</p>
-              <p class="mt-2 text-xl font-semibold text-rose-900">${formatDateTime(paymentDueAt)}</p>
-              <p class="mt-2 text-sm text-rose-800">If payment is not made onsite within 3 hours, this booking will be revoked automatically.</p>
+              <p class="mt-2 text-xl font-semibold text-rose-900">${formatDateTime(paymentDueAt, unpaidRevokeHours)}</p>
+              <p class="mt-2 text-sm text-rose-800">If payment is not made onsite within ${unpaidRevokeHours} hours, this booking will be revoked automatically.</p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="rounded-[1.5rem] border border-slate-200 p-5">
@@ -154,10 +154,18 @@ async function initSuccessPage() {
     return;
   }
 
+  let unpaidRevokeHours = 3;
+  try {
+    const settings = await getPublicSettings();
+    unpaidRevokeHours = Number(settings?.unpaidRevokeHours || 3);
+  } catch (error) {
+    unpaidRevokeHours = 3;
+  }
+
   const bookingNumber = bookingNumberFromQuery || bookingDraft.bookingNumber || generateBookingNumber();
   document.title = `Booking Success | ${apartment.name}`;
   window.sessionStorage.setItem('bookingNumber', bookingNumber);
-  renderApp(app, buildSuccessPage(apartment, bookingDraft, bookingNumber));
+  renderApp(app, buildSuccessPage(apartment, bookingDraft, bookingNumber, unpaidRevokeHours));
   window.sessionStorage.removeItem('bookingDraft');
   window.sessionStorage.removeItem('checkoutDraft');
 }
