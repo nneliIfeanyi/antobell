@@ -69,32 +69,17 @@ export function renderNavbar() {
 export function renderHero() {
   return `
     <section class="relative overflow-hidden bg-hero-pattern">
-      <div class="absolute inset-0 opacity-20">
+      <!-- <div class="absolute inset-0 opacity-20">
         <div class="absolute left-6 top-6 h-24 w-24 rounded-full bg-brand-200 blur-3xl"></div>
-        <div class="absolute right-10 top-24 h-32 w-32 rounded-full bg-cyan-200 blur-3xl"></div>
-      </div>
+        <div class="absolute right-10 top-24 h-32 w-32 rounded-full bg-cyan-200 blur-3xl"></div> 
+      </div> -->
       <div class="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:px-8 lg:py-24">
-        <div class="relative z-10 flex flex-col justify-center animate-fadeUp">
-          <span class="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-brand-100 bg-white px-4 py-2 text-sm font-medium text-brand-700 shadow-sm">
-            Comfort<i class="bi bi-dot"></i> Elegance <i class="bi bi-dot"></i> Home
-          </span>
-          <h1 class="max-w-3xl text-4xl font-semibold tracking-tight text-ink sm:text-5xl lg:text-6xl">
-            Find a modern apartment that feels like home.
-          </h1>
-          <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
-            Book verified stays with polished search, transparent pricing, and a booking flow designed to feel calm, fast, and trustworthy.
-          </p>
-          <!-- <div class="mt-10 flex flex-wrap gap-4 text-sm text-slate-600">
-            <div class="rounded-2xl bg-white px-4 py-3 shadow-soft">Verified apartments</div>
-            <div class="rounded-2xl bg-white px-4 py-3 shadow-soft">Instant confirmation</div>
-            <div class="rounded-2xl bg-white px-4 py-3 shadow-soft">24/7 support</div>
-          </div> --> 
-        </div>
+        
         <div class="relative z-10 animate-fadeUp lg:pt-8" style="animation-delay: 120ms;">
           <div class="overflow-hidden rounded-[2rem] border border-white/70 bg-white shadow-soft">
             <div id="heroSlidesViewport" class="relative h-[28rem] w-full">
               <article data-hero-slide class="absolute inset-0 transition-opacity duration-700 opacity-100">
-                <img data-hero-image src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1600&q=80" alt="Luxury apartment interior" class="h-full w-full object-cover" loading="eager" />
+                <img data-hero-image src="img/slide1.jpg" alt="Luxury apartment interior" class="h-full w-full object-cover" loading="eager" />
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-900/10 to-transparent"></div>
                 <div class="absolute inset-x-0 bottom-0 p-5 text-white">
                   <p data-hero-badge class="inline-flex rounded-full border border-white/45 bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em]">Signature Stay</p>
@@ -103,7 +88,7 @@ export function renderHero() {
                 </div>
               </article>
               <article data-hero-slide class="absolute inset-0 transition-opacity duration-700 opacity-0 pointer-events-none">
-                <img data-hero-image src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1600&q=80" alt="Modern living room with city lighting" class="h-full w-full object-cover" loading="lazy" />
+                <img data-hero-image src="img/slide2.jpg" alt="Modern living room with city lighting" class="h-full w-full object-cover" loading="lazy" />
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-900/10 to-transparent"></div>
                 <div class="absolute inset-x-0 bottom-0 p-5 text-white">
                   <p data-hero-badge class="inline-flex rounded-full border border-white/45 bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em]">Top Rated</p>
@@ -112,7 +97,7 @@ export function renderHero() {
                 </div>
               </article>
               <article data-hero-slide class="absolute inset-0 transition-opacity duration-700 opacity-0 pointer-events-none">
-                <img data-hero-image src="https://images.unsplash.com/photo-1493666438817-866a91353ca9?auto=format&fit=crop&w=1600&q=80" alt="Luxury apartment with bright interior" class="h-full w-full object-cover" loading="lazy" />
+                <img data-hero-image src="img/slide3.jpg" alt="Luxury apartment with bright interior" class="h-full w-full object-cover" loading="lazy" />
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-900/10 to-transparent"></div>
                 <div class="absolute inset-x-0 bottom-0 p-5 text-white">
                   <p data-hero-badge class="inline-flex rounded-full border border-white/45 bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em]">Guest Favorite</p>
@@ -121,7 +106,7 @@ export function renderHero() {
                 </div>
               </article>
               <article data-hero-slide class="absolute inset-0 transition-opacity duration-700 opacity-0 pointer-events-none">
-                <img data-hero-image src="https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1600&q=80" alt="Stylish apartment kitchen and lounge" class="h-full w-full object-cover" loading="lazy" />
+                <img data-hero-image src="img/slide4.jpg" alt="Stylish apartment kitchen and lounge" class="h-full w-full object-cover" loading="lazy" />
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-900/10 to-transparent"></div>
                 <div class="absolute inset-x-0 bottom-0 p-5 text-white">
                   <p data-hero-badge class="inline-flex rounded-full border border-white/45 bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em]">Executive Pick</p>
@@ -163,6 +148,22 @@ export function renderHero() {
             </div>
             <p class="mt-4 text-sm leading-6 text-slate-600">Explore standout apartments in motion, then jump into details or browse the full list.</p>
             <a href="${toPagePath('apartments.html')}" class="mt-5 inline-flex items-center rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800">Browse all apartments</a>
+          </div>
+        </div>
+        <div class="relative z-10 flex flex-col justify-center animate-fadeUp">
+          <span class="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-brand-100 bg-white px-4 py-2 text-sm font-medium text-brand-700 shadow-sm">
+            Comfort<i class="bi bi-dot"></i> Elegance <i class="bi bi-dot"></i> Home
+          </span>
+          <h1 class="max-w-3xl text-4xl font-semibold tracking-tight text-ink sm:text-5xl lg:text-6xl">
+            Find a modern apartment that feels like home.
+          </h1>
+          <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
+            Book verified stays with transparent pricing, and a booking flow designed to feel calm, fast, and trustworthy.
+          </p>
+         <div class="mt-10 flex flex-wrap gap-4 text-sm text-slate-600">
+            <div class="rounded-2xl bg-white px-4 py-3 shadow-soft">Verified apartments</div>
+            <div class="rounded-2xl bg-white px-4 py-3 shadow-soft">Instant confirmation</div>
+            <div class="rounded-2xl bg-white px-4 py-3 shadow-soft">24/7 support</div>
           </div>
         </div>
       </div>
