@@ -38,7 +38,7 @@ export function renderNavbar() {
         </nav>
         <div class="flex items-center gap-3">
           <a href="${toHomePath('search')}" class="hidden rounded-full px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 sm:inline-flex">Search stays</a>
-          <a href="${toPagePath('apartments.html')}" class="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-slate-800">View apartments</a>
+          <a href="${toPagePath('apartments.html')}" class="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-slate-800">Apartments</a>
           <details class="relative md:hidden">
             <summary class="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50">
               <span class="sr-only">Toggle menu</span>
@@ -79,40 +79,40 @@ export function renderHero() {
           <div class="overflow-hidden rounded-[2rem] border border-white/70 bg-white shadow-soft">
             <div id="heroSlidesViewport" class="relative h-[28rem] w-full">
               <article data-hero-slide class="absolute inset-0 transition-opacity duration-700 opacity-100">
-                <img data-hero-image src="img/slide1.jpg" alt="Luxury apartment interior" class="h-full w-full object-cover" loading="eager" />
+                <img data-hero-image src="https://res.cloudinary.com/hxie7hxn/image/upload/v1786967715/view2.jpg" alt="Luxury apartment interior" class="h-full w-full object-cover" loading="eager" />
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-900/10 to-transparent"></div>
-                <div class="absolute inset-x-0 bottom-0 p-5 text-white">
+                <!--<div class="absolute inset-x-0 bottom-0 p-5 text-white">
                   <p data-hero-badge class="inline-flex rounded-full border border-white/45 bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em]">Signature Stay</p>
                   <h3 data-hero-name class="mt-3 text-2xl font-semibold tracking-tight">The Horizon Suites</h3>
                   <p data-hero-meta class="mt-1 text-sm text-slate-100/90">Victoria Island, Lagos • From NGN 160,000/night</p>
-                </div>
+                </div>-->
               </article>
               <article data-hero-slide class="absolute inset-0 transition-opacity duration-700 opacity-0 pointer-events-none">
-                <img data-hero-image src="img/slide2.jpg" alt="Modern living room with city lighting" class="h-full w-full object-cover" loading="lazy" />
+                <img data-hero-image src="https://res.cloudinary.com/hxie7hxn/image/upload/v1786967719/vip2.jpg" alt="Modern living room with city lighting" class="h-full w-full object-cover" loading="lazy" />
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-900/10 to-transparent"></div>
-                <div class="absolute inset-x-0 bottom-0 p-5 text-white">
+                <!--<div class="absolute inset-x-0 bottom-0 p-5 text-white">
                   <p data-hero-badge class="inline-flex rounded-full border border-white/45 bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em]">Top Rated</p>
                   <h3 data-hero-name class="mt-3 text-2xl font-semibold tracking-tight">Azure Residences</h3>
                   <p data-hero-meta class="mt-1 text-sm text-slate-100/90">Ikoyi, Lagos • From NGN 210,000/night</p>
-                </div>
+                </div>-->
               </article>
               <article data-hero-slide class="absolute inset-0 transition-opacity duration-700 opacity-0 pointer-events-none">
                 <img data-hero-image src="img/slide3.jpg" alt="Luxury apartment with bright interior" class="h-full w-full object-cover" loading="lazy" />
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-900/10 to-transparent"></div>
-                <div class="absolute inset-x-0 bottom-0 p-5 text-white">
+                <!--<div class="absolute inset-x-0 bottom-0 p-5 text-white">
                   <p data-hero-badge class="inline-flex rounded-full border border-white/45 bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em]">Guest Favorite</p>
                   <h3 data-hero-name class="mt-3 text-2xl font-semibold tracking-tight">Palm Court Apartment</h3>
                   <p data-hero-meta class="mt-1 text-sm text-slate-100/90">Lekki Phase 1 • From NGN 135,000/night</p>
-                </div>
+                </div>-->
               </article>
               <article data-hero-slide class="absolute inset-0 transition-opacity duration-700 opacity-0 pointer-events-none">
                 <img data-hero-image src="img/slide4.jpg" alt="Stylish apartment kitchen and lounge" class="h-full w-full object-cover" loading="lazy" />
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-900/10 to-transparent"></div>
-                <div class="absolute inset-x-0 bottom-0 p-5 text-white">
+                <!--<div class="absolute inset-x-0 bottom-0 p-5 text-white">
                   <p data-hero-badge class="inline-flex rounded-full border border-white/45 bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em]">Executive Pick</p>
                   <h3 data-hero-name class="mt-3 text-2xl font-semibold tracking-tight">Marina Sky Loft</h3>
                   <p data-hero-meta class="mt-1 text-sm text-slate-100/90">Eko Atlantic • From NGN 245,000/night</p>
-                </div>
+                </div>-->
               </article>
               <div class="pointer-events-none absolute inset-x-0 top-4 flex justify-center px-4">
                 <span id="heroSlideCounter" class="rounded-full border border-white/50 bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur">01 / 04</span>
@@ -136,24 +136,12 @@ export function renderHero() {
             </div>
           </div>
           <div class="-mt-16 ml-auto w-full max-w-sm rounded-[1.75rem] border border-white/80 bg-white/95 p-5 shadow-soft backdrop-blur-xl animate-float">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm font-medium text-slate-500">Curated spotlight</p>
-                <p class="mt-1 text-3xl font-semibold text-slate-900">4 select stays</p>
-              </div>
-              <div class="rounded-2xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">Trusted</div>
-            </div>
-            <div class="mt-4 h-2 w-full rounded-full bg-slate-100">
-              <div class="h-2 w-[88%] rounded-full bg-brand-600"></div>
-            </div>
-            <p class="mt-4 text-sm leading-6 text-slate-600">Explore standout apartments in motion, then jump into details or browse the full list.</p>
-            <a href="${toPagePath('apartments.html')}" class="mt-5 inline-flex items-center rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800">Browse all apartments</a>
+          
+           &nbsp;&nbsp;&nbsp; Comfort<i class="bi bi-dot"></i>&nbsp;&nbsp;&nbsp; Elegance &nbsp;&nbsp;&nbsp;<i class="bi bi-dot"></i> Home
+         
           </div>
         </div>
         <div class="relative z-10 flex flex-col justify-center animate-fadeUp">
-          <span class="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-brand-100 bg-white px-4 py-2 text-sm font-medium text-brand-700 shadow-sm">
-            Comfort<i class="bi bi-dot"></i> Elegance <i class="bi bi-dot"></i> Home
-          </span>
           <h1 class="max-w-3xl text-4xl font-semibold tracking-tight text-ink sm:text-5xl lg:text-6xl">
             Find a modern apartment that feels like home.
           </h1>
@@ -183,7 +171,7 @@ export function renderSearchBar() {
         <form id="homeSearchForm" class="grid gap-4 lg:grid-cols-[1.3fr_1fr_1fr_0.8fr_auto]">
           <label class="flex flex-col gap-2 rounded-2xl bg-slate-50 px-4 py-3">
             <span class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Location</span>
-            <input name="destination" type="text" placeholder="Lagos, Abuja, Accra" class="bg-transparent text-sm outline-none placeholder:text-slate-400" aria-label="Destination" />
+            <input name="destination" value="Asaba" type="text" placeholder="Asaba" class="bg-transparent text-sm outline-none placeholder:text-slate-400" aria-label="Destination" />
           </label>
           <label class="flex flex-col gap-2 rounded-2xl bg-slate-50 px-4 py-3">
             <span class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Check-in</span>
@@ -252,16 +240,17 @@ export function renderApartmentCard(apartment) {
           <div class="flex items-start justify-between gap-4">
             <div>
               <h3 class="text-xl font-semibold text-slate-900">${escapeHtml(apartment.name)}</h3>
-              <p class="mt-1 text-sm text-slate-500">${escapeHtml(apartment.location)}</p>
+               <p class="mt-4 max-h-16 overflow-hidden text-sm leading-6 text-slate-600">${escapeHtml((apartment.amenities || ''))}</p>
+              <!--<p class="mt-1 text-sm text-slate-500">${escapeHtml(apartment.location)}</p>-->
             </div>
             <div class="rounded-2xl bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700">★ ${formatRating(apartment.rating)}</div>
           </div>
         </div>
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-xs uppercase tracking-[0.18em] text-slate-500">From</p>
+            <!--<p class="text-xs uppercase tracking-[0.18em] text-slate-500">From</p>
             <p class="text-2xl font-semibold text-slate-900">${formatCurrency(apartment.pricePerNight)}</p>
-            <p class="text-sm text-slate-500">per night</p>
+            <p class="text-sm text-slate-500">per night</p>-->
           </div>
           <a href="${toPagePath('apartment.html', `id=${encodeURIComponent(apartment.id)}`)}" class="inline-flex items-center rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800">View details</a>
         </div>
@@ -316,7 +305,7 @@ export function renderFeaturedSection() {
           <span class="text-sm font-semibold uppercase tracking-[0.22em] text-brand-700">Featured apartments</span>
           <h2 class="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Handpicked stays with premium comfort.</h2>
         </div>
-        <p class="max-w-2xl text-slate-600">Browse top-rated apartments with elegant interiors, transparent pricing, and seamless booking flow.</p>
+        <!--<p class="max-w-2xl text-slate-600">Browse top-rated apartments with elegant interiors, transparent pricing, and seamless booking flow.</p>-->
       </div>
       <div id="featuredGrid" class="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4"></div>
     </section>
@@ -428,7 +417,7 @@ export function renderFooter() {
             <span>ANTOBELL</span>
           </div>
           <p class="mt-2 inline-flex max-w-full truncate rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-brand-200">ANTOBELL SUITE</p>
-          <p class="mt-4 max-w-md text-sm leading-6 text-slate-400">Premium apartment booking with a clean UI, reliable flow, and thoughtful guest experience.</p>
+          <p class="mt-4 max-w-md text-sm leading-6 text-slate-400">No.7 Fabian Edward street off Benin/Asaba express way Asaba, Delta State</p>
         </div>
         <div class="space-y-3">
           <h3 class="text-sm font-semibold uppercase tracking-[0.22em] text-slate-400">Explore</h3>
@@ -440,17 +429,17 @@ export function renderFooter() {
         </div>
         <div class="space-y-3">
           <h3 class="text-sm font-semibold uppercase tracking-[0.22em] text-slate-400">Support</h3>
-          <a href="mailto:help@antobell.com" class="flex items-center gap-2 text-sm leading-6 text-slate-400 transition hover:text-white">
+          <a href="mailto:antobellsuite@gmail.com" class="flex items-center gap-2 text-sm leading-6 text-slate-400 transition hover:text-white">
             <i class="bi bi-envelope" aria-hidden="true"></i>
-            <span>help@antobell.com</span>
+            <span>antobellsuite@gmail.com</span>
           </a>
           <a href="tel:+15550192026" class="flex items-center gap-2 text-sm leading-6 text-slate-400 transition hover:text-white">
             <i class="bi bi-telephone" aria-hidden="true"></i>
-            <span>+1 (555) 019-2026</span>
+            <span>+2348038674492</span>
           </a>
-          <a href="https://wa.me/2348012345678" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-sm leading-6 text-slate-400 transition hover:text-white">
+          <a href="https://wa.me/2348038674492" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-sm leading-6 text-slate-400 transition hover:text-white">
             <i class="bi bi-whatsapp" aria-hidden="true"></i>
-            <span>WhatsApp: +234 801 234 5678</span>
+            <span>WhatsApp: +2348038674492</span>
           </a>
         </div>
       </div>
