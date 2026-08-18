@@ -19,7 +19,6 @@ import {
     renderTestimonials,
     renderWhyChooseUs
 } from './ui.js';
-import { formatCurrency } from './helper.js';
 import { toPagePath } from './helper.js';
 import { showToast } from './toast.js';
 
@@ -149,46 +148,6 @@ function bindSearchForm() {
 }
 
 /**
- * Replace fallback hero slide content with fetched best apartments.
- *
- * @param {Array} apartments - Featured apartments.
- * @returns {void}
- */
-function hydrateHeroSlides(apartments = []) {
-    const slides = Array.from(document.querySelectorAll('[data-hero-slide]'));
-    if (!slides.length || !Array.isArray(apartments) || !apartments.length) {
-        return;
-    }
-
-    apartments.slice(0, slides.length).forEach((apartment, index) => {
-        const slide = slides[index];
-        const imageElement = slide.querySelector('[data-hero-image]');
-        const badgeElement = slide.querySelector('[data-hero-badge]');
-        const nameElement = slide.querySelector('[data-hero-name]');
-        const metaElement = slide.querySelector('[data-hero-meta]');
-
-        if (imageElement instanceof HTMLImageElement && apartment?.image) {
-            imageElement.src = String(apartment.image);
-            imageElement.alt = `${String(apartment.name || 'Apartment')} cover image`;
-        }
-
-        if (badgeElement) {
-            badgeElement.textContent = String(apartment?.badge || 'Best Select');
-        }
-
-        if (nameElement) {
-            nameElement.textContent = String(apartment?.name || 'Premium Apartment');
-        }
-
-        if (metaElement) {
-            const location = String(apartment?.location || 'Prime location');
-            const price = formatCurrency(Number(apartment?.pricePerNight || 0));
-            metaElement.textContent = `${location} • From ${price}/night`;
-        }
-    });
-}
-
-/**
  * Bind hero slideshow controls and autoplay behavior.
  *
  * @returns {void}
@@ -293,8 +252,7 @@ async function initHomePage() {
     renderLoadingState();
 
     const apartments = await getFeaturedApartments();
-    hydrateHeroSlides(apartments);
-    renderApartments(apartments);
+    renderApartments(apartments.slice(0, 4));
 }
 
 initHomePage().catch(() => {

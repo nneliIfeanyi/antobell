@@ -5,7 +5,7 @@
  * the search-results experience.
  */
 
-import { getFeaturedApartments } from './api.js';
+import { getApartments } from './api.js';
 import {
     renderApp,
     renderApartmentSkeleton,
@@ -178,7 +178,7 @@ async function loadApartments() {
     renderLoadingGrid();
 
     try {
-        const apartments = await getFeaturedApartments();
+        const apartments = await getApartments();
         state.apartments = Array.isArray(apartments) ? apartments : [];
         state.currentPage = 1;
         renderApartments();

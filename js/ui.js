@@ -28,7 +28,6 @@ export function renderNavbar() {
     <header class="sticky top-0 z-50 border-b border-white/70 bg-white/90 backdrop-blur-xl">
       <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <a href="${toHomePath()}" class="flex items-center gap-3 font-semibold text-slate-900">
-          <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-600 text-white shadow-glow">A</span>
           <span class="text-lg tracking-tight">ANTOBELL</span>
         </a>
         <nav class="hidden items-center gap-8 md:flex">
@@ -79,7 +78,7 @@ export function renderHero() {
           <div class="overflow-hidden rounded-[2rem] border border-white/70 bg-white shadow-soft">
             <div id="heroSlidesViewport" class="relative h-[28rem] w-full">
               <article data-hero-slide class="absolute inset-0 transition-opacity duration-700 opacity-100">
-                <img data-hero-image src="https://res.cloudinary.com/hxie7hxn/image/upload/v1786967715/view2.jpg" alt="Luxury apartment interior" class="h-full w-full object-cover" loading="eager" />
+                <img data-hero-image src="img/slide1.jpg" alt="Luxury apartment interior" class="h-full w-full object-cover" loading="eager" />
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-900/10 to-transparent"></div>
                 <!--<div class="absolute inset-x-0 bottom-0 p-5 text-white">
                   <p data-hero-badge class="inline-flex rounded-full border border-white/45 bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em]">Signature Stay</p>
@@ -88,7 +87,7 @@ export function renderHero() {
                 </div>-->
               </article>
               <article data-hero-slide class="absolute inset-0 transition-opacity duration-700 opacity-0 pointer-events-none">
-                <img data-hero-image src="https://res.cloudinary.com/hxie7hxn/image/upload/v1786967719/vip2.jpg" alt="Modern living room with city lighting" class="h-full w-full object-cover" loading="lazy" />
+                <img data-hero-image src="img/slide2.jpg" alt="Modern living room with city lighting" class="h-full w-full object-cover" loading="lazy" />
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-900/10 to-transparent"></div>
                 <!--<div class="absolute inset-x-0 bottom-0 p-5 text-white">
                   <p data-hero-badge class="inline-flex rounded-full border border-white/45 bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em]">Top Rated</p>
@@ -433,9 +432,9 @@ export function renderFooter() {
             <i class="bi bi-envelope" aria-hidden="true"></i>
             <span>antobellsuite@gmail.com</span>
           </a>
-          <a href="tel:+15550192026" class="flex items-center gap-2 text-sm leading-6 text-slate-400 transition hover:text-white">
+          <a href="tel:+2348120979890" class="flex items-center gap-2 text-sm leading-6 text-slate-400 transition hover:text-white">
             <i class="bi bi-telephone" aria-hidden="true"></i>
-            <span>+2348038674492</span>
+            <span>+2348120979890</span>
           </a>
           <a href="https://wa.me/2348038674492" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-sm leading-6 text-slate-400 transition hover:text-white">
             <i class="bi bi-whatsapp" aria-hidden="true"></i>

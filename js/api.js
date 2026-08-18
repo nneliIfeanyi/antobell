@@ -82,12 +82,22 @@ export async function request(path, options = {}) {
 }
 
 /**
- * Fetch featured apartments.
+ * Fetch all active apartments.
+ *
+ * @returns {Promise<Array>} Active apartment list.
+ */
+export async function getApartments() {
+    const data = await request(API.ENDPOINTS.apartments);
+    return Array.isArray(data?.data) ? data.data : [];
+}
+
+/**
+ * Fetch the apartments selected for the homepage.
  *
  * @returns {Promise<Array>} Featured apartment list.
  */
 export async function getFeaturedApartments() {
-    const data = await request(API.ENDPOINTS.apartments);
+    const data = await request(`${API.ENDPOINTS.apartments}?featured=1`);
     return Array.isArray(data?.data) ? data.data : [];
 }
 
@@ -174,7 +184,7 @@ export async function searchApartmentsWithFilters(filters = {}) {
  * @returns {Promise<Array>} Similar apartments.
  */
 export async function getSimilarApartments(apartment) {
-    const apartments = await getFeaturedApartments();
+    const apartments = await getApartments();
     return apartments.filter((item) => item.id !== apartment?.id).slice(0, 3);
 }
 

@@ -77,6 +77,7 @@ function apartmentPayloadFromForm(form) {
         bedrooms: Number(form.elements.bedrooms.value || 0),
         bathrooms: Number(form.elements.bathrooms.value || 0),
         isActive: String(form.elements.isActive.value || '1') === '1',
+        isFeatured: form.elements.isFeatured.checked,
         amenities: collectListFromText(form.elements.amenities.value),
         houseRules: collectListFromText(form.elements.houseRules.value),
         gallery: collectListFromText(form.elements.gallery.value),
@@ -207,6 +208,13 @@ function buildApartmentsPage() {
                                         <option value="0" ${selected?.isActive === false ? 'selected' : ''}>Inactive</option>
                                     </select>
                                 </label>
+                                <label class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 sm:col-span-2">
+                                    <input name="isFeatured" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" ${selected?.isFeatured ? 'checked' : ''} />
+                                    <span>
+                                        <span class="block text-sm font-medium text-slate-700">Feature on homepage</span>
+                                        <span class="mt-1 block text-xs text-slate-500">Only four active apartments can be featured.</span>
+                                    </span>
+                                </label>
                             </div>
                             <label class="block space-y-2">
                                 <span class="text-sm font-medium text-slate-700">Amenities (one per line)</span>
@@ -274,7 +282,7 @@ function buildApartmentsPage() {
                                             </td>
                                             <td class="py-4">${formatCurrency(apartment.pricePerNight || 0)}</td>
                                             <td class="py-4">${Number(apartment.rating || 0).toFixed(1)}</td>
-                                            <td class="py-4">${statusBadge(apartment.isActive)}</td>
+                                            <td class="py-4"><div class="space-y-2">${statusBadge(apartment.isActive)}${apartment.isFeatured ? '<span class="block text-xs font-semibold uppercase tracking-[0.16em] text-brand-700">Featured</span>' : ''}</div></td>
                                             <td class="py-4">
                                                 <button type="button" data-edit-apartment="${escapeHtml(apartment.publicId)}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50">Edit</button>
                                             </td>
