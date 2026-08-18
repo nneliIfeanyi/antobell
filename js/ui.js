@@ -5,7 +5,7 @@
  * navigation, cards, skeletons, toasts, and trust sections.
  */
 
-import { escapeHtml, formatCurrency, formatRating, toHomePath, toPagePath } from './helper.js';
+import { escapeHtml, formatCurrency, formatRating, isSubPage, toHomePath, toPagePath } from './helper.js';
 
 /**
  * Render the application shell into the page.
@@ -33,11 +33,16 @@ export function renderInlineLoadingSpinner() {
  * @returns {string} Navbar HTML.
  */
 export function renderNavbar() {
+  const logoPath = isSubPage() ? '../img/logo.jpg' : 'img/logo.jpg';
+
   return `
     <header class="sticky top-0 z-50 border-b border-white/70 bg-white/90 backdrop-blur-xl">
       <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <a href="${toHomePath()}" class="flex items-center gap-3 font-semibold text-slate-900">
-          <span class="text-lg tracking-tight">ANTOBELL</span>
+          <span class="navbar-brand-switch" aria-label="ANTOBELL">
+            <span class="navbar-brand-switch__item navbar-brand-switch__item--logo" aria-hidden="true"><img src="${logoPath}" alt="" class="h-8 w-auto rounded-xl object-contain opacity-85 sm:h-9" /></span>
+            <span class="navbar-brand-switch__item navbar-brand-switch__item--name" aria-hidden="true">ANTOBELL</span>
+          </span>
         </a>
         <nav class="hidden items-center gap-8 md:flex">
           <a href="${toHomePath('featured')}" class="text-sm font-medium text-slate-600 transition hover:text-slate-900">Featured</a>
@@ -413,14 +418,14 @@ export function renderTestimonials(items = null) {
  */
 export function renderFooter() {
   const currentYear = new Date().getFullYear();
+  const footerLogoPath = isSubPage() ? '../img/logo1.jpg' : 'img/logo1.jpg';
 
   return `
     <footer class="border-t border-slate-200 bg-slate-950 text-slate-300">
       <div class="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-3 lg:px-8">
         <div>
           <div class="flex items-center gap-3 font-semibold text-white">
-            <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-600 text-white">A</span>
-            <span>ANTOBELL</span>
+            <img src="${footerLogoPath}" alt="ANTOBELL" class="h-14 w-auto object-contain" />
           </div>
           <p class="mt-2 inline-flex max-w-full truncate rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-brand-200">ANTOBELL SUITE</p>
           <p class="mt-4 max-w-md text-sm leading-6 text-slate-400">No.7 Fabian Edward street off Benin/Asaba express way Asaba, Delta State</p>

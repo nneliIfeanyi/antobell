@@ -98,7 +98,58 @@
     }
 }
 
+.navbar-brand-switch {
+    position: relative;
+    display: inline-flex;
+    min-width: 7.5rem;
+    height: 2.25rem;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.navbar-brand-switch__item {
+    position: absolute;
+    display: inline-flex;
+    align-items: center;
+    opacity: 0;
+    animation: navbar-brand-fade 8s ease-in-out infinite;
+}
+
+.navbar-brand-switch__item--logo {
+    animation-delay: 0s;
+}
+
+.navbar-brand-switch__item--name {
+    animation-delay: 4s;
+    color: #0f172a;
+    font-size: 1.125rem;
+    font-family: "Segoe Script", "Brush Script MT", cursive;
+    font-style: italic;
+    font-weight: 600;
+}
+
+@keyframes navbar-brand-fade {
+
+    0%,
+    42% {
+        opacity: 1;
+    }
+
+    50%,
+    92% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
 @media (max-width: 640px) {
+    .navbar-brand-switch {
+        min-width: 6.75rem;
+    }
+
     .page-loader__grid {
         grid-template-columns: 1fr;
     }
