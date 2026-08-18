@@ -59,15 +59,15 @@ function buildApartmentPage(apartment, similarApartments) {
                                 </div>
                             </div>
                         </div>
-                        <div class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
-                            ${renderSectionHeader('Similar apartments', 'Other premium stays that match this location and standard.')}
-                            <div class="mt-6 space-y-5">
-                                ${similarApartments.map((item) => renderCompactApartmentCard(item)).join('')}
-                            </div>
-                        </div>
                     </div>
                     <div>
                         ${renderBookingCard(apartment)}
+                    </div>
+                </section>
+                <section class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
+                    ${renderSectionHeader('Similar apartments', 'Other premium stays that match this location and standard.')}
+                    <div class="mt-6 grid gap-5 lg:grid-cols-3">
+                        ${similarApartments.map((item) => renderCompactApartmentCard(item)).join('')}
                     </div>
                 </section>
             </div>
