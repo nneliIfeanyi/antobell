@@ -593,7 +593,7 @@ export function renderApartmentDetailHero(apartment) {
     <section class="grid gap-6 lg:grid-cols-[1.45fr_0.95fr]">
       <div class="space-y-4">
         <div class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-soft">
-          <img id="detailMainImage" src="${escapeHtml(apartment.image)}" alt="${escapeHtml(apartment.name)}" class="h-[24rem] w-full object-cover sm:h-[32rem]" loading="eager" />
+          <img id="detailMainImage" src="${escapeHtml(apartment.image)}" alt="${escapeHtml(apartment.name)}" class="h-[24rem] w-full object-contain sm:h-[32rem]" loading="eager" />
         </div>
         <div id="detailThumbnails" class="grid grid-cols-4 gap-3"></div>
       </div>
@@ -721,13 +721,9 @@ export function renderBookingCard(apartment) {
             <span>Subtotal</span>
             <span>${formatCurrency(apartment.pricePerNight)}</span>
           </div>
-          <div class="flex items-center justify-between">
-            <span>Taxes</span>
-            <span>${formatCurrency(Math.round(apartment.pricePerNight * 0.12))}</span>
-          </div>
           <div class="flex items-center justify-between font-semibold text-slate-900">
-            <span>Grand total</span>
-            <span>${formatCurrency(Math.round(apartment.pricePerNight * 1.12))}</span>
+            <span>Total</span>
+            <span>${formatCurrency(apartment.pricePerNight)}</span>
           </div>
         </div>
         <button type="submit" class="inline-flex w-full items-center justify-center rounded-2xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-glow transition hover:bg-brand-700">Book now</button>
@@ -761,9 +757,7 @@ export function renderSectionHeader(title, description) {
  */
 export function renderBookingSummaryCard(apartment, stay = {}) {
   const subtotal = Number(apartment.pricePerNight || 0) * Number(stay.nights || 1);
-  const taxes = Math.round(subtotal * 0.12);
-  const fees = 25;
-  const grandTotal = subtotal + taxes + fees;
+  const total = subtotal;
 
   return `
     <aside class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft lg:sticky lg:top-24">
@@ -792,17 +786,9 @@ export function renderBookingSummaryCard(apartment, stay = {}) {
           <span>Subtotal</span>
           <span>${formatCurrency(subtotal)}</span>
         </div>
-        <div class="flex items-center justify-between">
-          <span>Taxes</span>
-          <span>${formatCurrency(taxes)}</span>
-        </div>
-        <div class="flex items-center justify-between">
-          <span>Fees</span>
-          <span>${formatCurrency(fees)}</span>
-        </div>
         <div class="flex items-center justify-between border-t border-slate-200 pt-4 text-base font-semibold text-slate-900">
-          <span>Grand total</span>
-          <span>${formatCurrency(grandTotal)}</span>
+          <span>Total</span>
+          <span>${formatCurrency(total)}</span>
         </div>
       </div>
       <p class="mt-5 text-sm leading-6 text-slate-500">Your booking details are protected and can be reviewed before payment confirmation.</p>
