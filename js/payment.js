@@ -8,6 +8,7 @@
 import { processPayment } from './api.js';
 import { toPagePath } from './helper.js';
 import { showToast } from './toast.js';
+import { renderInlineLoadingSpinner } from './ui.js';
 
 const params = new URLSearchParams(window.location.search);
 const apartmentId = params.get('apartmentId') || '';
@@ -65,6 +66,8 @@ function setStatus(text, type = 'neutral') {
  * @returns {void}
  */
 function initPayment() {
+    document.getElementById('pageLoader')?.classList.add('page-loader--hidden');
+
     const confirmButton = document.getElementById('confirmPaymentButton');
     const draft = getCheckoutDraft();
 
@@ -79,8 +82,8 @@ function initPayment() {
 
     confirmButton.addEventListener('click', async () => {
         confirmButton.setAttribute('disabled', 'disabled');
-        const originalText = confirmButton.textContent;
-        confirmButton.textContent = 'Processing payment...';
+        const originalMarkup = confirmButton.innerHTML;
+        confirmButton.innerHTML = `${renderInlineLoadingSpinner()}<span>Processing payment...</span>`;
         setStatus('Contacting payment endpoint...', 'neutral');
 
         try {
@@ -106,7 +109,7 @@ function initPayment() {
             setStatus(errorMessage, 'error');
             showToast(errorMessage, 'error');
             confirmButton.removeAttribute('disabled');
-            confirmButton.textContent = originalText;
+            confirmButton.innerHTML = originalMarkup;
         }
     });
 }

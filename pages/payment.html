@@ -34,9 +34,23 @@
             }
         };
     </script>
+    <link rel="stylesheet" href="../assets/css/page-loader.css" />
 </head>
 
 <body class="bg-slate-50 text-slate-900 antialiased selection:bg-brand-200 selection:text-brand-900">
+    <div id="pageLoader" class="page-loader page-loader--overlay" role="status" aria-label="Loading page">
+        <div class="page-loader__content">
+            <div class="page-loader__bar"></div>
+            <div class="page-loader__grid">
+                <div class="page-loader__block"></div>
+                <div class="page-loader__copy">
+                    <div class="page-loader__line page-loader__line--title"></div>
+                    <div class="page-loader__line"></div>
+                    <div class="page-loader__line page-loader__line--short"></div>
+                </div>
+            </div>
+        </div>
+    </div>
     <main class="mx-auto flex min-h-screen max-w-3xl items-center px-4 py-16 sm:px-6 lg:px-8">
         <section class="w-full rounded-[2rem] border border-slate-200 bg-white p-8 text-center shadow-soft">
             <span

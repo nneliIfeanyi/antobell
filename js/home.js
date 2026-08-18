@@ -14,6 +14,7 @@ import {
     renderFeaturedSection,
     renderFooter,
     renderHero,
+    renderInlineLoadingSpinner,
     renderNavbar,
     renderSearchBar,
     renderTestimonials,
@@ -150,8 +151,8 @@ function bindSearchForm() {
         }
 
         searchButton.disabled = true;
-        const originalText = searchButton.textContent;
-        searchButton.textContent = 'Checking availability...';
+        const originalMarkup = searchButton.innerHTML;
+        searchButton.innerHTML = `${renderInlineLoadingSpinner()}<span>Checking availability...</span>`;
 
         try {
             const availableApartments = await searchApartments({
@@ -176,7 +177,7 @@ function bindSearchForm() {
             showToast(error instanceof Error ? error.message : 'Unable to check availability right now.', 'error');
         } finally {
             searchButton.disabled = false;
-            searchButton.textContent = originalText;
+            searchButton.innerHTML = originalMarkup;
         }
     });
 }
@@ -272,19 +273,25 @@ function bindHeroSlider() {
  * @returns {Promise<void>} Initialization promise.
  */
 async function initHomePage() {
-    let publicSettings = { testimonials: [] };
-
-    try {
-        publicSettings = await getPublicSettings();
-    } catch (error) {
-        publicSettings = { testimonials: [] };
-    }
-
-    renderApp(app, buildHomePage(Array.isArray(publicSettings.testimonials) ? publicSettings.testimonials : []));
+    renderApp(app, buildHomePage());
     scrollToHashTarget();
     bindSearchForm();
     bindHeroSlider();
     renderLoadingState();
+
+    try {
+        const publicSettings = await getPublicSettings();
+        const testimonialsSection = document.getElementById('testimonials');
+
+        if (testimonialsSection) {
+            const testimonialsMarkup = document.createRange().createContextualFragment(
+                renderTestimonials(Array.isArray(publicSettings.testimonials) ? publicSettings.testimonials : [])
+            );
+            testimonialsSection.replaceWith(testimonialsMarkup);
+        }
+    } catch (error) {
+        // Keep the fallback testimonials already rendered in the page shell.
+    }
 
     const apartments = await getFeaturedApartments();
     renderApartments(apartments.slice(0, 4));

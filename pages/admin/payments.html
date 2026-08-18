@@ -38,10 +38,25 @@
             }
         };
     </script>
+    <link rel="stylesheet" href="../../assets/css/page-loader.css" />
 </head>
 
 <body class="min-h-screen bg-slate-100 text-slate-900 antialiased">
-    <div id="app"></div>
+    <div id="app">
+        <div class="page-loader" role="status" aria-label="Loading page">
+            <div class="page-loader__content">
+                <div class="page-loader__bar"></div>
+                <div class="page-loader__grid">
+                    <div class="page-loader__block"></div>
+                    <div class="page-loader__copy">
+                        <div class="page-loader__line page-loader__line--title"></div>
+                        <div class="page-loader__line"></div>
+                        <div class="page-loader__line page-loader__line--short"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <script type="module" src="../../js/admin/payments.js?v=20260722d"></script>
 </body>
 

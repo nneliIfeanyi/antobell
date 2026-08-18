@@ -19,6 +19,15 @@ export function renderApp(root, content) {
 }
 
 /**
+ * Render a small inline loading spinner for action buttons.
+ *
+ * @returns {string} Spinner HTML.
+ */
+export function renderInlineLoadingSpinner() {
+  return '<span class="inline-loading-spinner" aria-hidden="true"></span>';
+}
+
+/**
  * Render the navbar component.
  *
  * @returns {string} Navbar HTML.
@@ -72,7 +81,7 @@ export function renderHero() {
         <div class="absolute left-6 top-6 h-24 w-24 rounded-full bg-brand-200 blur-3xl"></div>
         <div class="absolute right-10 top-24 h-32 w-32 rounded-full bg-cyan-200 blur-3xl"></div> 
       </div>
-      <div class="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:px-8 lg:py-24">
+      <div class="mx-auto grid max-w-7xl gap-10 px-4 pt-8 pb-16 sm:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:px-8 lg:pt-12 lg:pb-24">
         
         <div class="relative z-10 animate-fadeUp lg:pt-8" style="animation-delay: 120ms;">
           <div class="overflow-hidden rounded-[2rem] border border-white/70 bg-white shadow-soft">

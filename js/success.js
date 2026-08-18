@@ -14,6 +14,14 @@ const params = new URLSearchParams(window.location.search);
 const apartmentId = params.get('apartmentId') || 'apt-101';
 const bookingNumberFromQuery = params.get('bookingNumber') || '';
 
+// Replace these placeholder values with the real payment account details.
+const PAYMENT_ACCOUNT_DETAILS = {
+  bankName: 'PLACEHOLDER BANK',
+  accountName: 'ANTOBELL SUITE PLACEHOLDER',
+  accountNumber: '0000000000',
+  whatsappNumber: '2348038674492'
+};
+
 /**
  * Generate a display-friendly booking number.
  *
@@ -93,6 +101,20 @@ function buildSuccessPage(apartment, bookingDraft, bookingNumber, unpaidRevokeHo
               <p class="text-sm font-semibold uppercase tracking-[0.2em] text-rose-700">Payment deadline</p>
               <p class="mt-2 text-xl font-semibold text-rose-900">${formatDateTime(paymentDueAt, unpaidRevokeHours)}</p>
               <p class="mt-2 text-sm text-rose-800">If payment is not made onsite within ${unpaidRevokeHours} hours, this booking will be revoked automatically.</p>
+            </div>
+            <div class="rounded-[1.75rem] border border-brand-200 bg-brand-50 p-6">
+              <p class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-700">Alternative payment</p>
+              <h2 class="mt-2 text-xl font-semibold text-slate-900">Pay by bank transfer</h2>
+              <p class="mt-2 text-sm leading-6 text-slate-600">If you cannot complete onsite payment within the deadline, transfer the booking total using the details below.</p>
+              <dl class="mt-5 space-y-3 text-sm">
+                <div class="flex items-center justify-between gap-4 border-b border-brand-100 pb-3"><dt class="text-slate-500">Bank</dt><dd class="text-right font-semibold text-slate-900">${PAYMENT_ACCOUNT_DETAILS.bankName}</dd></div>
+                <div class="flex items-center justify-between gap-4 border-b border-brand-100 pb-3"><dt class="text-slate-500">Account name</dt><dd class="text-right font-semibold text-slate-900">${PAYMENT_ACCOUNT_DETAILS.accountName}</dd></div>
+                <div class="flex items-center justify-between gap-4"><dt class="text-slate-500">Account number</dt><dd class="text-right font-semibold tracking-wider text-slate-900">${PAYMENT_ACCOUNT_DETAILS.accountNumber}</dd></div>
+              </dl>
+              <div class="mt-5 rounded-2xl border border-brand-200 bg-white p-4 text-sm leading-6 text-slate-700">
+                Screenshot this page with your booking number and payment details visible. Then send the screenshot and transfer receipt to WhatsApp.
+                <a href="https://wa.me/${PAYMENT_ACCOUNT_DETAILS.whatsappNumber}?text=${encodeURIComponent(`Payment receipt for booking ${bookingNumber}`)}" target="_blank" rel="noopener noreferrer" class="mt-3 inline-flex items-center gap-2 font-semibold text-brand-700 hover:text-brand-800"><i class="bi bi-whatsapp" aria-hidden="true"></i> Send receipt on WhatsApp</a>
+              </div>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="rounded-[1.5rem] border border-slate-200 p-5">

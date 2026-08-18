@@ -12,7 +12,6 @@ import {
     renderApp,
     renderApartmentAmenities,
     renderApartmentDetailHero,
-    renderApartmentReviews,
     renderApartmentRules,
     renderApartmentThumbnails,
     renderBookingCard,
@@ -61,10 +60,6 @@ function buildApartmentPage(apartment, similarApartments) {
                             </div>
                         </div>
                         <div class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
-                            ${renderSectionHeader('Customer reviews', 'Recent guest feedback from verified stays.')}
-                            <div class="mt-6">${renderApartmentReviews(apartment.reviews)}</div>
-                        </div>
-                        <div class="hidden rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft md:block">
                             ${renderSectionHeader('Similar apartments', 'Other premium stays that match this location and standard.')}
                             <div class="mt-6 space-y-5">
                                 ${similarApartments.map((item) => renderCompactApartmentCard(item)).join('')}

@@ -14,6 +14,7 @@ import {
     renderEmptyState,
     renderErrorState,
     renderFooter,
+    renderInlineLoadingSpinner,
     renderNavbar,
     renderCheckoutSectionHeader
 } from './ui.js';
@@ -21,6 +22,10 @@ import {
 const app = document.getElementById('app');
 const params = new URLSearchParams(window.location.search);
 const apartmentId = params.get('apartmentId') || params.get('id') || 'apt-101';
+
+function setButtonLoading(button, label) {
+    button.innerHTML = `${renderInlineLoadingSpinner()}<span>${label}</span>`;
+}
 
 /**
  * Calculate number of nights between check-in and check-out dates.
@@ -147,6 +152,7 @@ function buildCheckoutPage(apartment, stay) {
                     <section class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft lg:p-8">
                         <div id="userInfoStep">
                             ${renderCheckoutSectionHeader('User information', 'Fill in your details. If you already have an account, you can log in or register first.')}
+                            <!--
                             <div class="mt-6 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
                                 <p class="text-sm font-medium text-slate-800">Have an account?</p>
                                 <p class="mt-1 text-sm text-slate-600">Choose an option below, or continue as a guest.</p>
@@ -155,6 +161,7 @@ function buildCheckoutPage(apartment, stay) {
                                     <button id="registerOptionButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">Register</button>
                                 </div>
                             </div>
+                            -->
                             <div id="availabilityWarning" class="mt-5 hidden rounded-[1.25rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900" role="alert" aria-live="polite">
                                 <p class="font-semibold">Selected dates are unavailable</p>
                                 <p id="availabilityWarningText" class="mt-1 leading-6"></p>
@@ -539,8 +546,8 @@ function bindCheckoutFlow(apartment, stay) {
         }
 
         continueToReviewButton.setAttribute('disabled', 'disabled');
-        const originalContinueText = continueToReviewButton.textContent;
-        continueToReviewButton.textContent = 'Checking availability...';
+        const originalContinueMarkup = continueToReviewButton.innerHTML;
+        setButtonLoading(continueToReviewButton, 'Checking availability...');
 
         try {
             const availability = await checkBookingAvailability({
@@ -555,13 +562,13 @@ function bindCheckoutFlow(apartment, stay) {
                     : 'Selected dates are no longer available. Please change your dates and try again.';
                 showAvailabilityWarning(unavailableMessage);
                 continueToReviewButton.removeAttribute('disabled');
-                continueToReviewButton.textContent = originalContinueText;
+                continueToReviewButton.innerHTML = originalContinueMarkup;
                 return;
             }
         } catch (error) {
             showToast('Unable to confirm date availability right now. Please try again.', 'error');
             continueToReviewButton.removeAttribute('disabled');
-            continueToReviewButton.textContent = originalContinueText;
+            continueToReviewButton.innerHTML = originalContinueMarkup;
             return;
         }
 
@@ -580,7 +587,7 @@ function bindCheckoutFlow(apartment, stay) {
         setActiveStep('review');
 
         continueToReviewButton.removeAttribute('disabled');
-        continueToReviewButton.textContent = originalContinueText;
+        continueToReviewButton.innerHTML = originalContinueMarkup;
     });
 
     backToUserInfoButton.addEventListener('click', () => {
@@ -610,8 +617,8 @@ function bindCheckoutFlow(apartment, stay) {
         }
 
         finalSubmitButton.disabled = true;
-        const originalText = finalSubmitButton.textContent;
-        finalSubmitButton.textContent = 'Submitting booking...';
+        const originalMarkup = finalSubmitButton.innerHTML;
+        setButtonLoading(finalSubmitButton, 'Submitting booking...');
 
         try {
             const createdBooking = await createBooking({
@@ -661,7 +668,7 @@ function bindCheckoutFlow(apartment, stay) {
                 showToast(error instanceof Error ? error.message : 'Unable to submit booking. Please try again.', 'error');
             }
             finalSubmitButton.disabled = false;
-            finalSubmitButton.textContent = originalText;
+            finalSubmitButton.innerHTML = originalMarkup;
         }
     });
 }
