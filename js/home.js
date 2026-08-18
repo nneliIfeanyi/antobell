@@ -51,13 +51,32 @@ function buildHomePage(testimonials = []) {
  * @returns {void}
  */
 function scrollToHashTarget() {
-    const hash = window.location.hash.slice(1);
-    if (!hash) {
+    const encodedHash = window.location.hash.slice(1);
+    if (!encodedHash) {
         return;
     }
 
-    const target = document.getElementById(decodeURIComponent(hash));
-    target?.scrollIntoView({ behavior: 'auto', block: 'start' });
+    let targetId;
+    try {
+        targetId = decodeURIComponent(encodedHash);
+    } catch (error) {
+        targetId = encodedHash;
+    }
+
+    window.setTimeout(() => {
+        window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => {
+                const target = document.getElementById(targetId);
+                if (!target) {
+                    return;
+                }
+
+                const stickyHeaderOffset = 96;
+                const targetTop = target.getBoundingClientRect().top + window.scrollY - stickyHeaderOffset;
+                window.scrollTo({ top: Math.max(0, targetTop), behavior: 'auto' });
+            });
+        });
+    }, 0);
 }
 
 /**
