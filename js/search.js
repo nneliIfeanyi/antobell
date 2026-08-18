@@ -5,7 +5,7 @@
  * and renders responsive apartment cards with loading, empty, and error states.
  */
 
-import { searchApartmentsWithFilters } from './api.js';
+import { searchApartments } from './api.js';
 import { showToast } from './toast.js';
 import {
     renderApp,
@@ -16,7 +16,6 @@ import {
     renderFooter,
     renderNavbar,
     renderPagination,
-    renderSearchFilters,
     renderSearchResultsHeader
 } from './ui.js';
 
@@ -26,11 +25,6 @@ const DEFAULT_FILTERS = {
     destination: '',
     checkIn: '',
     checkOut: '',
-    maxPrice: 300,
-    bedrooms: 0,
-    bathrooms: 0,
-    rating: 0,
-    amenities: []
 };
 const state = {
     filters: { ...DEFAULT_FILTERS },
@@ -51,9 +45,8 @@ function buildSearchPage() {
     <main class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
       <div class="rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-soft backdrop-blur-xl">
         ${renderSearchResultsHeader(state.results.length)}
-        <div class="mt-8 grid gap-8 lg:grid-cols-[320px_1fr]">
-          ${renderSearchFilters()}
-          <section class="space-y-6">
+                <div class="mt-8">
+                    <section class="space-y-6">
             <div id="searchMeta" class="flex items-center justify-between gap-4 text-sm text-slate-500"></div>
             <div id="resultsGrid" class="grid gap-6"></div>
             <div id="paginationArea"></div>
@@ -73,17 +66,10 @@ function buildSearchPage() {
  */
 function getFiltersFromUrl() {
     const params = new URLSearchParams(window.location.search);
-    const amenityValues = params.getAll('amenities');
-
     return {
         destination: params.get('destination') || '',
         checkIn: params.get('checkIn') || '',
-        checkOut: params.get('checkOut') || '',
-        maxPrice: Number(params.get('maxPrice') || DEFAULT_FILTERS.maxPrice),
-        bedrooms: Number(params.get('bedrooms') || DEFAULT_FILTERS.bedrooms),
-        bathrooms: Number(params.get('bathrooms') || DEFAULT_FILTERS.bathrooms),
-        rating: Number(params.get('rating') || DEFAULT_FILTERS.rating),
-        amenities: amenityValues
+        checkOut: params.get('checkOut') || ''
     };
 }
 
@@ -161,7 +147,7 @@ function renderResults() {
     const visibleResults = getVisibleResults();
 
     if (!state.results.length) {
-        resultsGrid.innerHTML = renderEmptyState('No apartments match your filters', 'Try widening your price range, relaxing your amenity requirements, or changing the destination.');
+        resultsGrid.innerHTML = renderEmptyState('No apartments found', 'Try searching for another destination or check back later.');
         paginationArea.innerHTML = '';
         updateSearchMeta();
         return;
@@ -224,7 +210,7 @@ async function loadResults() {
     renderLoadingGrid();
 
     try {
-        state.results = await searchApartmentsWithFilters(state.filters);
+        state.results = await searchApartments(state.filters);
         state.currentPage = 1;
         state.isLoading = false;
         renderResults();
@@ -238,62 +224,6 @@ async function loadResults() {
             resultsGrid.innerHTML = renderErrorState('Search failed', 'We could not load apartments right now. Please try again in a moment.');
             paginationArea.innerHTML = '';
         }
-    }
-}
-
-/**
- * Read the filter form into the local state.
- *
- * @param {HTMLFormElement} form - Search filter form.
- * @returns {void}
- */
-function syncFiltersFromForm(form) {
-    const formData = new FormData(form);
-    const searchParams = new URLSearchParams(window.location.search);
-    state.filters.destination = String(searchParams.get('destination') || '');
-    state.filters.checkIn = String(searchParams.get('checkIn') || '');
-    state.filters.checkOut = String(searchParams.get('checkOut') || '');
-    state.filters.maxPrice = Number(formData.get('maxPrice') || DEFAULT_FILTERS.maxPrice);
-    state.filters.bedrooms = Number(formData.get('bedrooms') || DEFAULT_FILTERS.bedrooms);
-    state.filters.bathrooms = Number(formData.get('bathrooms') || DEFAULT_FILTERS.bathrooms);
-    state.filters.rating = Number(formData.get('rating') || DEFAULT_FILTERS.rating);
-    state.filters.amenities = formData.getAll('amenities').map((amenity) => String(amenity));
-}
-
-/**
- * Reset all filters to defaults.
- *
- * @param {HTMLFormElement} form - Search filter form.
- * @returns {void}
- */
-function resetFilters(form) {
-    form.reset();
-    state.filters = { ...DEFAULT_FILTERS, destination: state.filters.destination };
-}
-
-/**
- * Bind the filter form interactions.
- *
- * @returns {void}
- */
-function bindFilterForm() {
-    const filterForm = document.getElementById('filterForm');
-    const clearButton = document.getElementById('clearFiltersButton');
-    if (!filterForm) {
-        return;
-    }
-
-    filterForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        syncFiltersFromForm(filterForm);
-        await loadResults();
-    });
-
-    if (clearButton) {
-        clearButton.addEventListener('click', async () => {
-            resetFilters(filterForm);
-            await loadResults();
-        });
     }
 }
 
@@ -316,7 +246,6 @@ async function initSearchPage() {
     state.filters = getFiltersFromUrl();
     updateDocumentTitle();
     renderApp(app, buildSearchPage());
-    bindFilterForm();
     await loadResults();
 }
 

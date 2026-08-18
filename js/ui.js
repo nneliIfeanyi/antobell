@@ -148,9 +148,9 @@ export function renderHero() {
             Book verified stays with transparent pricing, and a booking flow designed to feel calm, fast, and trustworthy.
           </p>
          <div class="mt-10 flex flex-wrap gap-4 text-sm text-slate-600">
-            <div class="rounded-2xl bg-white px-4 py-3 shadow-soft">Verified apartments</div>
-            <div class="rounded-2xl bg-white px-4 py-3 shadow-soft">Instant confirmation</div>
-            <div class="rounded-2xl bg-white px-4 py-3 shadow-soft">24/7 support</div>
+            <!--<div class="rounded-2xl bg-white px-4 py-3 shadow-soft">Verified apartments</div>-->
+            <div class="rounded-2xl bg-white px-4 py-3 shadow-soft">Instant Booking</div>
+            <div class="rounded-2xl bg-white px-4 py-3 shadow-soft">24/7 Support</div>
           </div>
         </div>
       </div>
@@ -234,24 +234,22 @@ export function renderApartmentCard(apartment) {
         <img src="${escapeHtml(apartment.image)}" alt="${escapeHtml(apartment.name)}" class="h-60 w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
         <span class="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">${escapeHtml(apartment.badge)}</span>
       </div>
-      <div class="space-y-4 p-5">
-        <div>
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <h3 class="text-xl font-semibold text-slate-900">${escapeHtml(apartment.name)}</h3>
-               <p class="mt-4 max-h-16 overflow-hidden text-sm leading-6 text-slate-600">${escapeHtml((apartment.amenities || ''))}</p>
-              <!--<p class="mt-1 text-sm text-slate-500">${escapeHtml(apartment.location)}</p>-->
-            </div>
-            <div class="rounded-2xl bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700">★ ${formatRating(apartment.rating)}</div>
-          </div>
+      <div class="flex min-h-44 flex-col p-5">
+        <div class="flex items-start justify-between gap-4">
+          <h3 class="min-w-0 text-xl font-semibold leading-tight text-slate-900">${escapeHtml(apartment.name)}</h3>
+          <span class="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-3 py-1.5 text-sm font-semibold text-amber-700">
+            <i class="bi bi-star-fill text-xs" aria-hidden="true"></i>
+            ${formatRating(apartment.rating)}
+          </span>
         </div>
-        <div class="flex items-center justify-between">
-          <div>
-            <!--<p class="text-xs uppercase tracking-[0.18em] text-slate-500">From</p>
-            <p class="text-2xl font-semibold text-slate-900">${formatCurrency(apartment.pricePerNight)}</p>
-            <p class="text-sm text-slate-500">per night</p>-->
-          </div>
-          <a href="${toPagePath('apartment.html', `id=${encodeURIComponent(apartment.id)}`)}" class="inline-flex items-center rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800">View details</a>
+        <p class="mt-4 flex max-h-14 flex-wrap items-center gap-x-1 gap-y-1 overflow-hidden text-sm leading-6 text-slate-500">
+          ${(Array.isArray(apartment.amenities) ? apartment.amenities : []).map((amenity, index) => `${index > 0 ? '<i class="bi bi-dot text-slate-400" aria-hidden="true"></i>' : ''}<span>${escapeHtml(amenity)}</span>`).join('')}
+        </p>
+        <div class="mt-auto flex items-end justify-end border-t border-slate-100 pt-5">
+          <a href="${toPagePath('apartment.html', `id=${encodeURIComponent(apartment.id)}`)}" class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800">
+            View details
+            <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+          </a>
         </div>
       </div>
     </article>
@@ -493,7 +491,7 @@ export function renderSearchResultsHeader(count) {
       <div>
         <span class="text-sm font-semibold uppercase tracking-[0.22em] text-brand-700">Search results</span>
         <h1 id="searchResultsCount" class="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">${count} apartments available</h1>
-        <p class="mt-3 max-w-2xl text-slate-600">Refine your stay with price, bedrooms, bathrooms, amenities, and guest rating filters.</p>
+        <p class="mt-3 max-w-2xl text-slate-600">Browse available apartments matching your destination and selected dates.</p>
       </div>
     </div>
   `;
@@ -516,7 +514,7 @@ export function renderSearchFilters() {
       <form id="filterForm" class="mt-6 space-y-6">
         <label class="block space-y-2">
           <span class="text-sm font-medium text-slate-700">Price max</span>
-          <input name="maxPrice" type="range" min="100" max="500" value="300" class="w-full accent-brand-600" aria-label="Maximum price" />
+          <input name="maxPrice" type="range" min="0" max="1000000" step="10000" value="1000000" class="w-full accent-brand-600" aria-label="Maximum price" />
         </label>
         <label class="block space-y-2">
           <span class="text-sm font-medium text-slate-700">Bedrooms</span>

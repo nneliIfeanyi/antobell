@@ -46,6 +46,21 @@ function buildHomePage(testimonials = []) {
 }
 
 /**
+ * Scroll to a requested homepage section after the app shell is rendered.
+ *
+ * @returns {void}
+ */
+function scrollToHashTarget() {
+    const hash = window.location.hash.slice(1);
+    if (!hash) {
+        return;
+    }
+
+    const target = document.getElementById(decodeURIComponent(hash));
+    target?.scrollIntoView({ behavior: 'auto', block: 'start' });
+}
+
+/**
  * Update the featured grid with a list of apartments.
  *
  * @param {Array} apartments - Apartment list.
@@ -247,6 +262,7 @@ async function initHomePage() {
     }
 
     renderApp(app, buildHomePage(Array.isArray(publicSettings.testimonials) ? publicSettings.testimonials : []));
+    scrollToHashTarget();
     bindSearchForm();
     bindHeroSlider();
     renderLoadingState();
