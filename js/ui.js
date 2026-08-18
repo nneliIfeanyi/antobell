@@ -593,7 +593,7 @@ export function renderApartmentDetailHero(apartment) {
     <section class="grid gap-6 lg:grid-cols-[1.45fr_0.95fr]">
       <div class="space-y-4">
         <div class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-soft">
-          <img id="detailMainImage" src="${escapeHtml(apartment.image)}" alt="${escapeHtml(apartment.name)}" class="h-[24rem] w-full object-contain sm:h-[32rem]" loading="eager" />
+          <img id="detailMainImage" src="${escapeHtml(apartment.image)}" alt="${escapeHtml(apartment.name)}" class="aspect-[4/3] h-auto w-full object-cover object-center sm:aspect-[16/10]" loading="eager" />
         </div>
         <div id="detailThumbnails" class="grid grid-cols-4 gap-3"></div>
       </div>
