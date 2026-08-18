@@ -39,9 +39,9 @@ export function renderNavbar() {
     <header class="sticky top-0 z-50 border-b border-white/70 bg-white/90 backdrop-blur-xl">
       <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <a href="${toHomePath()}" class="flex items-center gap-3 font-semibold text-slate-900">
-          <span class="navbar-brand-switch" aria-label="ANTOBELL">
-            <span class="navbar-brand-switch__item navbar-brand-switch__item--logo" aria-hidden="true"><img src="${logoPath}" alt="" class="h-8 w-auto rounded-xl object-contain opacity-85 sm:h-9" /></span>
-            <span class="navbar-brand-switch__item navbar-brand-switch__item--name" aria-hidden="true">ANTOBELL</span>
+          <span class="inline-flex items-center gap-2" aria-label="ANTOBELL">
+            <img src="${logoPath}" alt="" class="h-8 w-auto rounded-xl object-contain opacity-85 sm:h-9" />
+            <span class="text-lg font-semibold italic tracking-tight text-slate-900">ANTOBELL</span>
           </span>
         </a>
         <nav class="hidden items-center gap-8 md:flex">
@@ -51,7 +51,7 @@ export function renderNavbar() {
         </nav>
         <div class="flex items-center gap-3">
           <a href="${toHomePath('search')}" class="hidden rounded-full px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 sm:inline-flex">Search stays</a>
-          <a href="${toPagePath('apartments.html')}" class="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-slate-800">Apartments</a>
+          <a href="${toPagePath('apartments.html')}" class="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-slate-800">Suites</a>
           <details class="relative md:hidden">
             <summary class="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50">
               <span class="sr-only">Toggle menu</span>
