@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CEO Master Dashboard | ANTOBELL</title>
+  <meta name="description" content="ANTOBELL CEO overview — bookings, payments, activity log (view only)." />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="apple-touch-icon" sizes="180x180" href="../img/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/icons/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="../img/icons/favicon-16x16.png" />
+  <link rel="icon" href="../img/icons/favicon.ico" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
+              400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
+              800: '#1e40af', 900: '#1e3a8a'
+            },
+            ink: '#0f172a'
+          },
+          boxShadow: {
+            soft: '0 20px 45px -20px rgba(15, 23, 42, 0.28)',
+            glow: '0 12px 40px -18px rgba(59, 130, 246, 0.45)'
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade-up { animation: fadeUp 0.35s ease-out both; }
+    .pin-dot { width: 14px; height: 14px; border-radius: 9999px; border: 2px solid #94a3b8; transition: all 0.15s; }
+    .pin-dot.filled { background: #2563eb; border-color: #2563eb; }
+    .tab-active { color: #1d4ed8; border-color: #2563eb; background: #eff6ff; }
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-900 antialiased">
+
+  <!-- PIN GATE -->
+  <div id="pin-gate" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-brand-900 p-4">
+    <div class="w-full max-w-md animate-fade-up rounded-3xl bg-white p-8 shadow-soft">
+      <div class="mb-6 text-center">
+        <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-600 text-xl font-bold text-white shadow-glow">A</div>
+        <h1 class="text-xl font-semibold tracking-tight text-ink">CEO Master Dashboard</h1>
+        <p class="mt-1 text-sm text-slate-500">View-only access · Enter your 6-digit PIN</p>
+      </div>
+
+      <div class="mb-6 flex justify-center gap-3" id="pin-dots" aria-hidden="true">
+        <span class="pin-dot" data-i="0"></span>
+        <span class="pin-dot" data-i="1"></span>
+        <span class="pin-dot" data-i="2"></span>
+        <span class="pin-dot" data-i="3"></span>
+        <span class="pin-dot" data-i="4"></span>
+        <span class="pin-dot" data-i="5"></span>
+      </div>
+
+      <input type="password" id="pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off"
+        class="sr-only" aria-label="6-digit PIN" />
+
+      <div class="grid grid-cols-3 gap-3" id="pin-pad"></div>
+
+      <p id="pin-error" class="mt-4 hidden text-center text-sm font-medium text-rose-600"></p>
+      <p class="mt-6 text-center text-xs text-slate-400">ANTOBELL · Confidential</p>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="hidden min-h-screen">
+    <header class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur">
+      <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600 text-sm font-bold text-white">A</div>
+          <div>
+            <p class="text-sm font-semibold text-ink">ANTOBELL · CEO</p>
+            <p class="text-xs text-slate-500">Master activity &amp; bookings overview</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="hidden rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 sm:inline-flex">View only</span>
+          <button type="button" id="btn-refresh" class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Refresh</button>
+          <button type="button" id="btn-lock" class="rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800">Lock</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+      <section id="kpi-grid" class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6"></section>
+
+      <div class="mb-4 flex flex-wrap gap-2 border-b border-slate-200 pb-1">
+        <button type="button" data-tab="bookings" class="tab-btn tab-active rounded-t-lg border-b-2 px-4 py-2 text-sm font-medium">Bookings</button>
+        <button type="button" data-tab="payments" class="tab-btn rounded-t-lg border-b-2 border-transparent px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900">Payments</button>
+        <button type="button" data-tab="activity" class="tab-btn rounded-t-lg border-b-2 border-transparent px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900">Activity log</button>
+      </div>
+
+      <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="relative flex-1 max-w-md">
+          <input type="search" id="search-input" placeholder="Search booking #, guest, email, apartment…"
+            class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-4 pr-10 text-sm shadow-sm outline-none ring-brand-500 focus:ring-2" />
+        </div>
+        <div class="flex flex-wrap gap-2" id="filter-row">
+          <select id="filter-status" class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2">
+            <option value="">All statuses</option>
+            <option value="pending_payment">Pending payment</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="pending">Pending</option>
+          </select>
+          <select id="filter-payment" class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2">
+            <option value="">All payment</option>
+            <option value="paid">Paid</option>
+            <option value="unpaid">Unpaid</option>
+            <option value="failed">Failed</option>
+          </select>
+        </div>
+      </div>
+
+      <section id="panel-bookings" class="tab-panel">
+        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div class="overflow-x-auto scrollbar-thin">
+            <table class="min-w-full text-left text-sm">
+              <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                <tr>
+                  <th class="px-4 py-3 font-medium">Booking</th>
+                  <th class="px-4 py-3 font-medium">Guest</th>
+                  <th class="px-4 py-3 font-medium">Apartment</th>
+                  <th class="px-4 py-3 font-medium">Check-in</th>
+                  <th class="px-4 py-3 font-medium">Check-out</th>
+                  <th class="px-4 py-3 font-medium">Amount</th>
+                  <th class="px-4 py-3 font-medium">Status</th>
+                  <th class="px-4 py-3 font-medium">Payment</th>
+                  <th class="px-4 py-3 font-medium">Created</th>
+                </tr>
+              </thead>
+              <tbody id="bookings-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+          <p id="bookings-empty" class="hidden px-4 py-10 text-center text-sm text-slate-500">No bookings match your filters.</p>
+        </div>
+      </section>
+
+      <section id="panel-payments" class="tab-panel hidden">
+        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div class="overflow-x-auto scrollbar-thin">
+            <table class="min-w-full text-left text-sm">
+              <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                <tr>
+                  <th class="px-4 py-3 font-medium">Transaction</th>
+                  <th class="px-4 py-3 font-medium">Booking</th>
+                  <th class="px-4 py-3 font-medium">Guest</th>
+                  <th class="px-4 py-3 font-medium">Apartment</th>
+                  <th class="px-4 py-3 font-medium">Amount</th>
+                  <th class="px-4 py-3 font-medium">Provider</th>
+                  <th class="px-4 py-3 font-medium">Status</th>
+                  <th class="px-4 py-3 font-medium">Paid at</th>
+                </tr>
+              </thead>
+              <tbody id="payments-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+          <p id="payments-empty" class="hidden px-4 py-10 text-center text-sm text-slate-500">No payments found.</p>
+        </div>
+      </section>
+
+      <section id="panel-activity" class="tab-panel hidden">
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+          <ul id="activity-list" class="space-y-3"></ul>
+          <p id="activity-empty" class="hidden py-10 text-center text-sm text-slate-500">No recent activity.</p>
+        </div>
+      </section>
+
+      <p class="mt-6 text-center text-xs text-slate-400">
+        Data refreshes on demand · No actions can be taken from this screen · PIN required on every load
+      </p>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      const CEO_API_CONFIG = {
+        MODE: 'live', // 'local' or 'live'
+        LIVE_BASE_URL: 'https://api.leadstar.com.ng/antobell/ceo.php'
+      };
+
+      function ceoApiBaseUrl() {
+        if (CEO_API_CONFIG.MODE === 'live') {
+          return CEO_API_CONFIG.LIVE_BASE_URL;
+        }
+
+        if (window.location.pathname.includes('/master_file/')) {
+          return '../api/ceo.php';
+        }
+
+        return './api/ceo.php';
+      }
+
+      const SESSION_KEY = 'antobell_ceo_pin';
+      let currentPin = sessionStorage.getItem(SESSION_KEY) || '';
+      let activeTab = 'bookings';
+      let searchTimer = null;
+
+      const $ = (sel) => document.querySelector(sel);
+      const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+      const pinPad = $('#pin-pad');
+      const keys = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
+      keys.forEach((k) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        if (k === '') {
+          btn.className = 'invisible';
+          btn.tabIndex = -1;
+        } else {
+          btn.className = 'rounded-2xl border border-slate-200 bg-slate-50 py-3.5 text-lg font-semibold text-slate-800 transition hover:bg-slate-100 active:scale-95';
+          btn.textContent = k;
+          btn.addEventListener('click', () => onPinKey(k));
+        }
+        pinPad.appendChild(btn);
+      });
+
+      const pinInput = $('#pin-input');
+      pinInput.addEventListener('input', () => {
+        const v = pinInput.value.replace(/\D/g, '').slice(0, 6);
+        pinInput.value = v;
+        updatePinDots(v);
+        if (v.length === 6) attemptLogin(v);
+      });
+
+      function updatePinDots(value) {
+        $$('#pin-dots .pin-dot').forEach((el, i) => {
+          el.classList.toggle('filled', i < value.length);
+        });
+      }
+
+      function onPinKey(key) {
+        let v = pinInput.value;
+        if (key === '⌫') v = v.slice(0, -1);
+        else if (v.length < 6) v += key;
+        pinInput.value = v;
+        updatePinDots(v);
+        $('#pin-error').classList.add('hidden');
+        if (v.length === 6) attemptLogin(v);
+      }
+
+      async function attemptLogin(pin) {
+        try {
+          const url = new URL(ceoApiBaseUrl(), window.location.href);
+          url.searchParams.set('route', 'auth/verify');
+          const res = await fetch(url.toString(), {
+            headers: { 'X-CEO-PIN': pin }
+          });
+          const json = await res.json();
+          if (!res.ok || !json.success) throw new Error(json.message || 'Invalid PIN');
+          currentPin = pin;
+          sessionStorage.setItem(SESSION_KEY, pin);
+          $('#pin-gate').classList.add('hidden');
+          $('#dashboard').classList.remove('hidden');
+          await loadAll();
+        } catch (err) {
+          $('#pin-error').textContent = err.message || 'Access denied';
+          $('#pin-error').classList.remove('hidden');
+          pinInput.value = '';
+          updatePinDots('');
+        }
+      }
+
+      if (currentPin && /^\d{6}$/.test(currentPin)) attemptLogin(currentPin);
+
+      function money(n, currency) {
+        currency = currency || 'NGN';
+        try {
+          return new Intl.NumberFormat('en-NG', { style: 'currency', currency: currency, maximumFractionDigits: 0 }).format(Number(n) || 0);
+        } catch (e) {
+          return currency + ' ' + Number(n || 0).toLocaleString();
+        }
+      }
+
+      function fmtDate(d) {
+        if (!d) return '—';
+        const dt = new Date(d.includes('T') || d.includes(' ') ? d : d + 'T00:00:00');
+        if (Number.isNaN(dt.getTime())) return d;
+        return dt.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+      }
+
+      function fmtDateTime(d) {
+        if (!d) return '—';
+        const dt = new Date(String(d).replace(' ', 'T'));
+        if (Number.isNaN(dt.getTime())) return d;
+        return dt.toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      }
+
+      function statusBadge(status) {
+        const map = {
+          confirmed: 'bg-emerald-50 text-emerald-700',
+          pending_payment: 'bg-amber-50 text-amber-700',
+          pending: 'bg-slate-100 text-slate-600',
+          cancelled: 'bg-rose-50 text-rose-700',
+          paid: 'bg-emerald-50 text-emerald-700',
+          unpaid: 'bg-amber-50 text-amber-700',
+          failed: 'bg-rose-50 text-rose-700',
+          successful: 'bg-emerald-50 text-emerald-700',
+          initiated: 'bg-slate-100 text-slate-600'
+        };
+        const cls = map[status] || 'bg-slate-100 text-slate-600';
+        return '<span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ' + cls + '">' + String(status).replace(/_/g, ' ') + '</span>';
+      }
+
+      async function ceoFetch(route, params) {
+        params = params || {};
+        const url = new URL(ceoApiBaseUrl(), window.location.href);
+        url.searchParams.set('route', route);
+        Object.entries(params).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== '') {
+            url.searchParams.set(key, String(value));
+          }
+        });
+
+        const res = await fetch(url.toString(), { headers: { 'X-CEO-PIN': currentPin } });
+        const json = await res.json();
+        if (!res.ok || !json.success) {
+          if (res.status === 401 || res.status === 403) lockScreen();
+          throw new Error(json.message || 'Request failed');
+        }
+        return json.data;
+      }
+
+      function renderKpis(stats) {
+        const cards = [
+          { label: 'Total bookings', value: stats.totalBookings, sub: stats.confirmedBookings + ' confirmed' },
+          { label: 'Revenue (paid)', value: money(stats.totalRevenuePaid), sub: stats.paidBookings + ' paid' },
+          { label: 'Outstanding', value: money(stats.totalOutstanding), sub: stats.unpaidBookings + ' unpaid' },
+          { label: 'Pending payment', value: stats.pendingPaymentBookings, sub: 'awaiting pay' },
+          { label: 'Check-ins today', value: stats.checkinsToday, sub: stats.checkoutsToday + ' check-outs' },
+          { label: 'Active apartments', value: stats.activeApartments, sub: stats.successfulPayments + ' payments' }
+        ];
+        $('#kpi-grid').innerHTML = cards.map(function (c, i) {
+          return '<article class="animate-fade-up rounded-2xl border border-slate-200 bg-white p-4 shadow-sm" style="animation-delay:' + (i * 40) + 'ms">' +
+            '<p class="text-xs font-medium uppercase tracking-wide text-slate-500">' + c.label + '</p>' +
+            '<p class="mt-1 text-xl font-semibold tracking-tight text-ink">' + c.value + '</p>' +
+            '<p class="mt-0.5 text-xs text-slate-500">' + c.sub + '</p></article>';
+        }).join('');
+      }
+
+      function escapeHtml(str) {
+        return String(str == null ? '' : str)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+
+      async function loadBookings() {
+        const data = await ceoFetch('bookings', {
+          search: $('#search-input').value.trim(),
+          status: $('#filter-status').value,
+          paymentStatus: $('#filter-payment').value,
+          limit: '200'
+        });
+        const rows = data.bookings || [];
+        const body = $('#bookings-body');
+        const empty = $('#bookings-empty');
+        if (!rows.length) {
+          body.innerHTML = '';
+          empty.classList.remove('hidden');
+          return;
+        }
+        empty.classList.add('hidden');
+        body.innerHTML = rows.map(function (b) {
+          return '<tr class="hover:bg-slate-50/80">' +
+            '<td class="px-4 py-3 font-medium text-brand-700">' + escapeHtml(b.bookingNumber) + '</td>' +
+            '<td class="px-4 py-3"><div class="font-medium">' + escapeHtml(b.guestName) + '</div>' +
+            '<div class="text-xs text-slate-500">' + escapeHtml(b.guestEmail) + '</div>' +
+            '<div class="text-xs text-slate-400">' + escapeHtml(b.guestPhone || '') + '</div></td>' +
+            '<td class="px-4 py-3"><div>' + escapeHtml((b.apartment && b.apartment.name) || '—') + '</div>' +
+            '<div class="text-xs text-slate-500">' + escapeHtml((b.apartment && b.apartment.location) || '') + '</div></td>' +
+            '<td class="px-4 py-3 whitespace-nowrap">' + fmtDate(b.checkIn) + '</td>' +
+            '<td class="px-4 py-3 whitespace-nowrap">' + fmtDate(b.checkOut) + '</td>' +
+            '<td class="px-4 py-3 font-medium whitespace-nowrap">' + money(b.totalAmount) + '</td>' +
+            '<td class="px-4 py-3">' + statusBadge(b.status) + '</td>' +
+            '<td class="px-4 py-3">' + statusBadge(b.paymentStatus) + '</td>' +
+            '<td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">' + fmtDateTime(b.createdAt) + '</td></tr>';
+        }).join('');
+      }
+
+      async function loadPayments() {
+        const data = await ceoFetch('payments', {
+          search: $('#search-input').value.trim(),
+          limit: '200'
+        });
+        const rows = data.payments || [];
+        const body = $('#payments-body');
+        const empty = $('#payments-empty');
+        if (!rows.length) {
+          body.innerHTML = '';
+          empty.classList.remove('hidden');
+          return;
+        }
+        empty.classList.add('hidden');
+        body.innerHTML = rows.map(function (p) {
+          return '<tr class="hover:bg-slate-50/80">' +
+            '<td class="px-4 py-3 font-medium text-brand-700">' + escapeHtml(p.transactionRef) + '</td>' +
+            '<td class="px-4 py-3">' + escapeHtml((p.booking && p.booking.bookingNumber) || '—') + '</td>' +
+            '<td class="px-4 py-3">' + escapeHtml((p.booking && p.booking.guestName) || '—') + '</td>' +
+            '<td class="px-4 py-3">' + escapeHtml((p.apartment && p.apartment.name) || '—') + '</td>' +
+            '<td class="px-4 py-3 font-medium whitespace-nowrap">' + money(p.amount, p.currency || 'NGN') + '</td>' +
+            '<td class="px-4 py-3 text-xs">' + escapeHtml(p.provider || '—') + '</td>' +
+            '<td class="px-4 py-3">' + statusBadge(p.status) + '</td>' +
+            '<td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">' + fmtDateTime(p.paidAt || p.createdAt) + '</td></tr>';
+        }).join('');
+      }
+
+      async function loadActivity() {
+        const data = await ceoFetch('activity', { limit: '80' });
+        const items = data.activities || [];
+        const list = $('#activity-list');
+        const empty = $('#activity-empty');
+        if (!items.length) {
+          list.innerHTML = '';
+          empty.classList.remove('hidden');
+          return;
+        }
+        empty.classList.add('hidden');
+        list.innerHTML = items.map(function (a) {
+          const sideCls = a.side === 'admin'
+            ? 'bg-violet-50 text-violet-700 border-violet-100'
+            : 'bg-sky-50 text-sky-700 border-sky-100';
+          const sideLabel = a.side === 'admin' ? 'Admin' : 'Client';
+          return '<li class="flex gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3">' +
+            '<div class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border ' + sideCls + ' text-xs font-bold">' + sideLabel[0] + '</div>' +
+            '<div class="min-w-0 flex-1">' +
+            '<div class="flex flex-wrap items-center gap-2">' +
+            '<p class="text-sm font-semibold text-ink">' + escapeHtml(a.title) + '</p>' +
+            '<span class="rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ' + sideCls + '">' + sideLabel + '</span></div>' +
+            '<p class="mt-0.5 text-sm text-slate-600">' + escapeHtml(a.description) + '</p>' +
+            '<p class="mt-1 text-xs text-slate-400">' + fmtDateTime(a.occurredAt) + '</p></div></li>';
+        }).join('');
+      }
+
+      async function loadAll() {
+        try {
+          const summary = await ceoFetch('dashboard/summary');
+          renderKpis(summary.stats || {});
+          if (activeTab === 'bookings') await loadBookings();
+          else if (activeTab === 'payments') await loadPayments();
+          else await loadActivity();
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      function lockScreen() {
+        currentPin = '';
+        sessionStorage.removeItem(SESSION_KEY);
+        pinInput.value = '';
+        updatePinDots('');
+        $('#dashboard').classList.add('hidden');
+        $('#pin-gate').classList.remove('hidden');
+        $('#pin-error').classList.add('hidden');
+      }
+
+      $$('.tab-btn').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+          activeTab = btn.dataset.tab;
+          $$('.tab-btn').forEach(function (b) {
+            b.classList.remove('tab-active');
+            b.classList.add('border-transparent', 'text-slate-600');
+          });
+          btn.classList.add('tab-active');
+          btn.classList.remove('border-transparent', 'text-slate-600');
+          $$('.tab-panel').forEach(function (p) { p.classList.add('hidden'); });
+          $('#panel-' + activeTab).classList.remove('hidden');
+          $('#filter-row').style.visibility = activeTab === 'bookings' ? 'visible' : 'hidden';
+          try {
+            if (activeTab === 'bookings') await loadBookings();
+            else if (activeTab === 'payments') await loadPayments();
+            else await loadActivity();
+          } catch (e) { console.error(e); }
+        });
+      });
+
+      $('#btn-refresh').addEventListener('click', function () { loadAll(); });
+      $('#btn-lock').addEventListener('click', lockScreen);
+
+      $('#search-input').addEventListener('input', function () {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(async function () {
+          try {
+            if (activeTab === 'bookings') await loadBookings();
+            else if (activeTab === 'payments') await loadPayments();
+          } catch (e) { console.error(e); }
+        }, 300);
+      });
+
+      $('#filter-status').addEventListener('change', function () {
+        if (activeTab === 'bookings') loadBookings();
+      });
+      $('#filter-payment').addEventListener('change', function () {
+        if (activeTab === 'bookings') loadBookings();
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (!$('#pin-gate').classList.contains('hidden')) {
+          if (e.key >= '0' && e.key <= '9') onPinKey(e.key);
+          else if (e.key === 'Backspace') onPinKey('⌫');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

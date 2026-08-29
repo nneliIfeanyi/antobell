@@ -152,6 +152,20 @@ export function updateAdminBookingStatus(bookingRef, status) {
     });
 }
 
+export function checkOutBookingNow(bookingRef) {
+    return adminRequest(`bookings/${encodeURIComponent(String(bookingRef))}/check-out-now`, {
+        method: 'POST',
+        body: JSON.stringify({})
+    });
+}
+
+export function updateAdminBookingCheckoutDate(bookingRef, newCheckOut, reason = '') {
+    return adminRequest(`bookings/${encodeURIComponent(String(bookingRef))}/checkout-date`, {
+        method: 'PATCH',
+        body: JSON.stringify({ newCheckOut, reason })
+    });
+}
+
 export function getAdminPayments(params = {}) {
     const query = new URLSearchParams();
 

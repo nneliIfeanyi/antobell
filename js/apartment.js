@@ -127,9 +127,15 @@ function bindBookingCard() {
         const checkIn = String(checkInInput?.value || '').trim();
         const checkOut = String(checkOutInput?.value || '').trim();
         const guests = String(guestsInput?.value || '2').trim();
+        const today = new Date().toISOString().slice(0, 10);
 
         if (!checkIn || !checkOut) {
             showToast('Please select check-in and check-out dates before continuing.', 'error');
+            return;
+        }
+
+        if (checkIn < today) {
+            showToast('Check-in cannot be earlier than today.', 'error');
             return;
         }
 

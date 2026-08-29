@@ -3,32 +3,25 @@
  *
  * Centralized endpoint configuration and request helpers for the booking app.
  */
-// You can change the BASE_URL in the API object to your HTTPS endpoint.
-// For example, if your endpoint is "https://api.example.com/", you would modify the BASE_URL like this:
+// Set MODE to 'local' for XAMPP testing or 'live' for the production API.
+const API_CONFIG = {
+    MODE: 'live',
+    LIVE_BASE_URL: 'https://api.leadstar.com.ng/antobell/'
+};
+
 const API = {
-    BASE_URL: 'https://api.leadstar.com.ng/antobell/',
+    BASE_URL: API_CONFIG.MODE === 'live'
+        ? API_CONFIG.LIVE_BASE_URL
+        : (window.location.pathname.includes('/pages/') ? '../api/' : './api/'),
     ENDPOINTS: {
         apartments: 'apartments',
         apartment: 'apartments/',
-        publicSettings: 'settings/public',
         availability: 'booking/check',
         booking: 'booking/create',
         payment: 'payment',
         bookingById: 'booking/'
     }
 };
-
-// const API = {
-//     BASE_URL: window.location.pathname.includes('/pages/') ? '../api/' : './api/',
-//     ENDPOINTS: {
-//         apartments: 'apartments',
-//         apartment: 'apartments/',
-//         availability: 'booking/check',
-//         booking: 'booking/create',
-//         payment: 'payment',
-//         bookingById: 'booking/'
-//     }
-// };
 
 /**
  * Build an absolute API URL.

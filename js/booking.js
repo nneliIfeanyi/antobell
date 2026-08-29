@@ -99,6 +99,11 @@ function validateStay(stay) {
         return { isValid: false, message: 'Select check-in and check-out dates on apartment details before continuing.' };
     }
 
+    const today = new Date().toISOString().slice(0, 10);
+    if (stay.checkIn < today) {
+        return { isValid: false, message: 'Check-in cannot be earlier than today.' };
+    }
+
     if (new Date(stay.checkOut) <= new Date(stay.checkIn)) {
         return { isValid: false, message: 'Check-out must be after check-in.' };
     }

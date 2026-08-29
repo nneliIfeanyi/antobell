@@ -9,6 +9,8 @@ import {
     logoutAdmin,
     markBookingPaidOnsite,
     revokeOverdueUnpaidBooking,
+    checkOutBookingNow,
+    updateAdminBookingCheckoutDate,
     updateAdminBookingStatus
 } from './api.js';
 import { formatCurrency } from '../helper.js';
@@ -64,6 +66,7 @@ function statusBadge(status) {
     const styles = {
         pending_payment: 'border-amber-200 bg-amber-50 text-amber-700',
         confirmed: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+        checked_out: 'border-sky-200 bg-sky-50 text-sky-700',
         cancelled: 'border-rose-200 bg-rose-50 text-rose-700',
         pending: 'border-slate-200 bg-slate-100 text-slate-700',
     };
@@ -85,6 +88,126 @@ function paymentBadge(status) {
 
 function selectedBookingRef() {
     return state.selectedBooking?.bookingNumber || '';
+}
+
+function calculateDateDifferenceDays(startDate, endDate) {
+    if (!startDate || !endDate) {
+        return 0;
+    }
+
+    const start = new Date(String(startDate));
+    const end = new Date(String(endDate));
+
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        return 0;
+    }
+
+    return Math.max(0, Math.round((end.getTime() - start.getTime()) / 86400000));
+}
+
+function buildExtendStayModal(booking) {
+    const nightlyRate = Number(booking?.apartment?.pricePerNight ?? 0);
+    const currentCheckOut = booking?.checkOut || '';
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4';
+
+    modal.innerHTML = `
+        <div class="w-full max-w-lg rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">Extend stay</p>
+                    <h3 class="mt-2 text-2xl font-semibold tracking-tight text-slate-900">${escapeHtml(booking?.bookingNumber || 'Booking')}</h3>
+                </div>
+                <button type="button" data-close-extend-modal class="rounded-full border border-slate-200 p-2 text-slate-600 hover:bg-slate-50">✕</button>
+            </div>
+
+            <div class="mt-5 space-y-4">
+                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                    <p>Current checkout: <strong>${escapeHtml(currentCheckOut || '—')}</strong></p>
+                    <p class="mt-1">Nightly rate: <strong>${formatCurrency(nightlyRate)}</strong></p>
+                </div>
+
+                <label class="block space-y-2 text-sm font-medium text-slate-700">
+                    <span>New checkout date</span>
+                    <input id="extendStayDateInput" type="date" value="${escapeHtml(currentCheckOut)}" min="${escapeHtml(currentCheckOut)}" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-brand-500" required />
+                </label>
+
+                <label class="block space-y-2 text-sm font-medium text-slate-700">
+                    <span>Reason</span>
+                    <textarea id="extendStayReasonInput" rows="3" placeholder="Guest requested a longer stay" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-brand-500"></textarea>
+                </label>
+
+                <div class="rounded-2xl border border-brand-100 bg-brand-50 p-4 text-sm text-brand-900">
+                    <p class="font-medium">Estimated extension charge</p>
+                    <p id="extendStayEstimate" class="mt-1 text-lg font-semibold">${formatCurrency(0)}</p>
+                </div>
+            </div>
+
+            <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+                <button type="button" data-close-extend-modal class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+                <button id="confirmExtendStayButton" type="button" class="rounded-2xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">Confirm extension</button>
+            </div>
+        </div>
+    `;
+
+    const dateInput = modal.querySelector('#extendStayDateInput');
+    const reasonInput = modal.querySelector('#extendStayReasonInput');
+    const estimateLabel = modal.querySelector('#extendStayEstimate');
+
+    const updateEstimate = () => {
+        const newDate = String(dateInput.value || '').trim();
+        if (!newDate || !currentCheckOut) {
+            estimateLabel.textContent = formatCurrency(0);
+            return;
+        }
+
+        const extraDays = calculateDateDifferenceDays(currentCheckOut, newDate);
+        const extraCharge = extraDays * nightlyRate;
+        estimateLabel.textContent = `${formatCurrency(extraCharge)} (${extraDays} night${extraDays === 1 ? '' : 's'})`;
+    };
+
+    dateInput.addEventListener('input', updateEstimate);
+    updateEstimate();
+
+    const closeModal = () => modal.remove();
+    modal.querySelectorAll('[data-close-extend-modal]').forEach((button) => {
+        button.addEventListener('click', closeModal);
+    });
+
+    modal.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    const confirmButton = modal.querySelector('#confirmExtendStayButton');
+    confirmButton.addEventListener('click', async () => {
+        const nextDate = String(dateInput.value || '').trim();
+        if (!nextDate) {
+            showToast('Please select a new checkout date.', 'error');
+            return;
+        }
+
+        const reason = String(reasonInput.value || '').trim() || 'Admin extended stay';
+        confirmButton.setAttribute('disabled', 'disabled');
+        confirmButton.textContent = 'Updating...';
+
+        try {
+            const response = await updateAdminBookingCheckoutDate(booking.bookingNumber, nextDate, reason);
+            closeModal();
+            showToast(`Stay extended: ${response?.updatedCheckOut || nextDate}.`, 'success');
+            await refreshBookingsList();
+            const detail = await getAdminBooking(booking.bookingNumber);
+            state.selectedBooking = detail?.booking || null;
+            renderPage();
+        } catch (error) {
+            showToast(error instanceof Error ? error.message : 'Unable to extend stay.', 'error');
+            confirmButton.removeAttribute('disabled');
+            confirmButton.textContent = 'Confirm extension';
+        }
+    });
+
+    document.body.appendChild(modal);
 }
 
 function buildBookingsPage() {
@@ -109,6 +232,7 @@ function buildBookingsPage() {
                                     <option value="all" ${state.filters.status === 'all' ? 'selected' : ''}>All</option>
                                     <option value="pending_payment" ${state.filters.status === 'pending_payment' ? 'selected' : ''}>Pending payment</option>
                                     <option value="confirmed" ${state.filters.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                                    <option value="checked_out" ${state.filters.status === 'checked_out' ? 'selected' : ''}>Checked out</option>
                                     <option value="cancelled" ${state.filters.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
                                 </select>
                             </label>
@@ -189,6 +313,7 @@ function buildBookingsPage() {
                                             <p class="text-slate-500">Stay</p>
                                             <p class="mt-1">${escapeHtml(selected.checkIn)} to ${escapeHtml(selected.checkOut)}</p>
                                             <p>${escapeHtml(String(selected.guests))} guests</p>
+                                            ${selected.actualCheckOut ? `<p class="mt-2 font-medium text-sky-700">Checked out: ${escapeHtml(formatDateTime(selected.actualCheckOut))}</p>` : ''}
                                         </div>
                                         <div>
                                             <p class="text-slate-500">Amounts</p>
@@ -213,6 +338,8 @@ function buildBookingsPage() {
                                     <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                                         ${selected.paymentStatus === 'unpaid' && selected.status === 'pending_payment' ? '<button id="markPaidOnsiteButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-glow transition hover:bg-brand-700 sm:w-auto">Mark paid onsite</button>' : ''}
                                         ${selected.paymentStatus === 'unpaid' && selected.status === 'pending_payment' && selected.isOverdue ? '<button id="revokeBookingButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-700 sm:w-auto">Revoke overdue booking</button>' : ''}
+                                        ${selected.status === 'confirmed' && selected.paymentStatus === 'paid' ? '<button id="checkOutNowButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-semibold text-sky-700 transition hover:bg-sky-100 sm:w-auto">Check out now</button>' : ''}
+                                        ${selected.status === 'confirmed' && selected.paymentStatus === 'paid' ? '<button id="extendStayButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-brand-200 bg-white px-4 py-2.5 text-sm font-semibold text-brand-700 transition hover:bg-brand-50 sm:w-auto">Extend stay</button>' : ''}
                                         ${selected.status !== 'cancelled' ? '<button id="cancelBookingButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-rose-200 bg-white px-4 py-2.5 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 sm:w-auto">Cancel booking</button>' : ''}
                                         ${selected.status === 'cancelled' && selected.paymentStatus !== 'paid' ? '<button id="restoreBookingButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-brand-200 bg-white px-4 py-2.5 text-sm font-semibold text-brand-700 transition hover:bg-brand-50 sm:w-auto">Restore to pending payment</button>' : ''}
                                     </div>
@@ -361,6 +488,20 @@ async function runBookingAction(action) {
         showToast(`Booking ${bookingRef} cancelled.`, 'success');
     }
 
+    if (action === 'checkout-now') {
+        await checkOutBookingNow(bookingRef);
+        showToast(`Booking ${bookingRef} marked as checked out.`, 'success');
+    }
+
+    if (action === 'extend') {
+        if (!state.selectedBooking) {
+            return;
+        }
+
+        buildExtendStayModal(state.selectedBooking);
+        return;
+    }
+
     if (action === 'restore') {
         await updateAdminBookingStatus(bookingRef, 'pending_payment');
         showToast(`Booking ${bookingRef} restored to pending payment.`, 'success');
@@ -377,6 +518,8 @@ async function runBookingAction(action) {
 function bindDetailActions() {
     const markPaidButton = document.getElementById('markPaidOnsiteButton');
     const revokeButton = document.getElementById('revokeBookingButton');
+    const checkOutNowButton = document.getElementById('checkOutNowButton');
+    const extendStayButton = document.getElementById('extendStayButton');
     const cancelButton = document.getElementById('cancelBookingButton');
     const restoreButton = document.getElementById('restoreBookingButton');
 
@@ -400,6 +543,30 @@ function bindDetailActions() {
             } catch (error) {
                 showToast(error instanceof Error ? error.message : 'Unable to revoke booking.', 'error');
                 revokeButton.removeAttribute('disabled');
+            }
+        });
+    }
+
+    if (checkOutNowButton) {
+        checkOutNowButton.addEventListener('click', async () => {
+            checkOutNowButton.setAttribute('disabled', 'disabled');
+            try {
+                await runBookingAction('checkout-now');
+            } catch (error) {
+                showToast(error instanceof Error ? error.message : 'Unable to check out booking.', 'error');
+                checkOutNowButton.removeAttribute('disabled');
+            }
+        });
+    }
+
+    if (extendStayButton) {
+        extendStayButton.addEventListener('click', async () => {
+            extendStayButton.setAttribute('disabled', 'disabled');
+            try {
+                await runBookingAction('extend');
+            } catch (error) {
+                showToast(error instanceof Error ? error.message : 'Unable to extend booking stay.', 'error');
+                extendStayButton.removeAttribute('disabled');
             }
         });
     }

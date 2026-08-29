@@ -702,6 +702,8 @@ export function renderApartmentReviews(reviews = []) {
  * @returns {string} Booking card HTML.
  */
 export function renderBookingCard(apartment) {
+  const today = new Date().toISOString().slice(0, 10);
+
   return `
     <aside class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft lg:sticky lg:top-24">
       <div class="flex items-end justify-between gap-4">
@@ -714,11 +716,11 @@ export function renderBookingCard(apartment) {
       <form id="bookingCardForm" class="mt-6 space-y-4">
         <label class="block space-y-2">
           <span class="text-sm font-medium text-slate-700">Check-in</span>
-          <input name="checkIn" type="date" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-500" required aria-label="Check-in date" />
+          <input name="checkIn" type="date" min="${today}" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-500" required aria-label="Check-in date" />
         </label>
         <label class="block space-y-2">
           <span class="text-sm font-medium text-slate-700">Check-out</span>
-          <input name="checkOut" type="date" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-500" required aria-label="Check-out date" />
+          <input name="checkOut" type="date" min="${today}" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-500" required aria-label="Check-out date" />
         </label>
         <label class="block space-y-2">
           <span class="text-sm font-medium text-slate-700">Guests</span>
