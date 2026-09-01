@@ -295,6 +295,24 @@
         return dt.toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
       }
 
+      // Check-in date always shown; the actual check-in time is only known once an admin confirms payment.
+      function fmtCheckIn(dateStr, actualCheckIn) {
+        const datePart = fmtDate(dateStr);
+        if (!actualCheckIn) return datePart + '<span class="block text-xs text-slate-400">Not checked in</span>';
+        const dt = new Date(String(actualCheckIn).replace(' ', 'T'));
+        const time = Number.isNaN(dt.getTime()) ? '' : dt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+        return datePart + '<span class="block text-xs text-slate-500">' + time + '</span>';
+      }
+
+      // Check-out date always shown; the actual check-out time is only known once the guest is checked out.
+      function fmtCheckOut(dateStr, actualCheckOut) {
+        const datePart = fmtDate(dateStr);
+        if (!actualCheckOut) return datePart + '<span class="block text-xs text-slate-400">Not checked out</span>';
+        const dt = new Date(String(actualCheckOut).replace(' ', 'T'));
+        const time = Number.isNaN(dt.getTime()) ? '' : dt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+        return datePart + '<span class="block text-xs text-slate-500">' + time + '</span>';
+      }
+
       function statusBadge(status) {
         const map = {
           confirmed: 'bg-emerald-50 text-emerald-700',
@@ -376,8 +394,8 @@
             '<div class="text-xs text-slate-400">' + escapeHtml(b.guestPhone || '') + '</div></td>' +
             '<td class="px-4 py-3"><div>' + escapeHtml((b.apartment && b.apartment.name) || '—') + '</div>' +
             '<div class="text-xs text-slate-500">' + escapeHtml((b.apartment && b.apartment.location) || '') + '</div></td>' +
-            '<td class="px-4 py-3 whitespace-nowrap">' + fmtDate(b.checkIn) + '</td>' +
-            '<td class="px-4 py-3 whitespace-nowrap">' + fmtDate(b.checkOut) + '</td>' +
+            '<td class="px-4 py-3 whitespace-nowrap">' + fmtCheckIn(b.checkIn, b.actualCheckIn) + '</td>' +
+            '<td class="px-4 py-3 whitespace-nowrap">' + fmtCheckOut(b.checkOut, b.actualCheckOut) + '</td>' +
             '<td class="px-4 py-3 font-medium whitespace-nowrap">' + money(b.totalAmount) + '</td>' +
             '<td class="px-4 py-3">' + statusBadge(b.status) + '</td>' +
             '<td class="px-4 py-3">' + statusBadge(b.paymentStatus) + '</td>' +

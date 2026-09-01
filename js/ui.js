@@ -431,7 +431,7 @@ export function renderFooter() {
             <img src="${footerLogoPath}" alt="ANTOBELL" class="h-14 w-auto object-contain" />
           </div>
           <p class="mt-2 inline-flex max-w-full truncate rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-brand-200">ANTOBELL SUITE</p>
-          <p class="mt-4 max-w-md text-sm leading-6 text-slate-400">No.7 Fabian Edward street off Benin/Asaba express way Asaba, Delta State</p>
+          <p class="mt-4 max-w-md text-sm leading-6 text-slate-400">No.7 Fabian Edward street,<br/>off Benin/Asaba express way Asaba,<br/>Delta State</p>
         </div>
         <div class="space-y-3">
           <h3 class="text-sm font-semibold uppercase tracking-[0.22em] text-slate-400">Explore</h3>
