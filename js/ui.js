@@ -159,7 +159,10 @@ export function renderHero() {
             Find a modern apartment that feels like home.
           </h1>
           <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
-            Book verified stays with transparent pricing, and a booking flow designed to feel calm, fast, and trustworthy.
+          Make a reservation now from anywhere, Fast, easy and reliable.
+          </p>
+          <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
+          Think comfortable place to relax, Think ANTOBELL SUITE
           </p>
          <div class="mt-10 flex flex-wrap gap-4 text-sm text-slate-600">
             <!--<div class="rounded-2xl bg-white px-4 py-3 shadow-soft">Verified apartments</div>-->
@@ -341,7 +344,7 @@ export function renderWhyChooseUs() {
       <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
         <div class="max-w-2xl">
           <span class="text-sm font-semibold uppercase tracking-[0.22em] text-brand-700">Why choose us</span>
-          <h2 class="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">A booking experience designed to feel calm and reliable.</h2>
+          <h2 class="mt-3 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">A Comfortable Place To Have Home Experience, Home Away From Home.</h2>
         </div>
         <div class="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
           ${items.map((item) => `
