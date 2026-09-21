@@ -10,7 +10,8 @@ import {
     getCurrentAdmin,
     hardDeleteAdminApartment,
     logoutAdmin,
-    updateAdminApartment
+    updateAdminApartment,
+    uploadAdminApartmentImages
 } from './api.js';
 import { formatCurrency } from '../helper.js';
 import { bindAdminMobileMenu, enhanceResponsiveTables, renderAdminHeader } from './layout.js';
@@ -18,6 +19,9 @@ import { showToast } from '../toast.js';
 
 const app = document.getElementById('app');
 const APARTMENT_FILTER_DEBOUNCE_MS = 300;
+const MAX_GALLERY_IMAGES = 4;
+const MAX_IMAGE_DIMENSION = 2000;
+const IMAGE_QUALITY = 0.82;
 const state = {
     admin: null,
     apartments: [],
@@ -71,7 +75,7 @@ function apartmentPayloadFromForm(form) {
         location: String(form.elements.location.value || '').trim(),
         address: String(form.elements.address.value || '').trim(),
         description: String(form.elements.description.value || '').trim(),
-        imageUrl: String(form.elements.imageUrl.value || '').trim(),
+        imageUrl: '',
         pricePerNight: Number(form.elements.pricePerNight.value || 0),
         rating: Number(form.elements.rating.value || 0),
         bedrooms: Number(form.elements.bedrooms.value || 0),
@@ -80,7 +84,7 @@ function apartmentPayloadFromForm(form) {
         isFeatured: form.elements.isFeatured.checked,
         amenities: collectListFromText(form.elements.amenities.value),
         houseRules: collectListFromText(form.elements.houseRules.value),
-        gallery: collectListFromText(form.elements.gallery.value),
+        gallery: [],
     };
 }
 
@@ -179,8 +183,9 @@ function buildApartmentsPage() {
                             </label>
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <label class="block space-y-2">
-                                    <span class="text-sm font-medium text-slate-700">Image URL</span>
-                                    <input id="apartmentImageUrlInput" name="imageUrl" type="url" value="${escapeHtml(selected?.imageUrl || '')}" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500" required />
+                                    <span class="text-sm font-medium text-slate-700">Cover image</span>
+                                    <input id="apartmentCoverImageInput" name="coverImage" type="file" accept="image/jpeg,image/png,image/webp" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500" ${selected ? '' : 'required'} />
+                                    <span class="block text-xs text-slate-500">Choose a new file to replace the current cover image.</span>
                                 </label>
                                 <label class="block space-y-2">
                                     <span class="text-sm font-medium text-slate-700">Price per night (NGN)</span>
@@ -225,8 +230,9 @@ function buildApartmentsPage() {
                                 <textarea name="houseRules" rows="3" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500">${escapeHtml((selected?.houseRules || []).join('\n'))}</textarea>
                             </label>
                             <label class="block space-y-2">
-                                <span class="text-sm font-medium text-slate-700">Gallery URLs (one per line)</span>
-                                <textarea name="gallery" rows="3" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500">${escapeHtml((selected?.gallery || []).join('\n'))}</textarea>
+                                <span class="text-sm font-medium text-slate-700">Gallery images</span>
+                                <input id="apartmentGalleryImagesInput" name="galleryImages" type="file" accept="image/jpeg,image/png,image/webp" multiple class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500" />
+                                <span class="block text-xs text-slate-500">Select up to ${MAX_GALLERY_IMAGES} images. Selecting new files replaces the current gallery.</span>
                             </label>
                             <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                                 <button id="saveApartmentButton" type="submit" class="inline-flex w-full items-center justify-center rounded-2xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-glow transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto">${selected ? 'Update apartment' : 'Create apartment'}</button>
@@ -305,14 +311,68 @@ function buildApartmentsPage() {
 
 function updateImagePreview() {
     const preview = document.getElementById('apartmentImagePreview');
-    const imageInput = document.getElementById('apartmentImageUrlInput');
+    const imageInput = document.getElementById('apartmentCoverImageInput');
     const nameInput = document.querySelector('#apartmentForm input[name="name"]');
 
     if (!preview || !(imageInput instanceof HTMLInputElement)) {
         return;
     }
 
-    preview.innerHTML = imagePreviewMarkup(imageInput.value.trim(), nameInput instanceof HTMLInputElement ? nameInput.value.trim() : 'Apartment preview');
+    const file = imageInput.files?.[0];
+    const imageUrl = file ? URL.createObjectURL(file) : state.selectedApartment?.imageUrl || '';
+    preview.innerHTML = imagePreviewMarkup(imageUrl, nameInput instanceof HTMLInputElement ? nameInput.value.trim() : 'Apartment preview');
+}
+
+function compressImage(file) {
+    return new Promise((resolve, reject) => {
+        const objectUrl = URL.createObjectURL(file);
+        const image = new Image();
+        image.onload = () => {
+            const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(image.naturalWidth, image.naturalHeight));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+            canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+            canvas.getContext('2d')?.drawImage(image, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob((blob) => {
+                URL.revokeObjectURL(objectUrl);
+                if (!blob) {
+                    reject(new Error(`Unable to process ${file.name}.`));
+                    return;
+                }
+                resolve(new File([blob], `${file.name.replace(/\.[^.]+$/, '')}.webp`, { type: 'image/webp' }));
+            }, 'image/webp', IMAGE_QUALITY);
+        };
+        image.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error(`Unable to read ${file.name}.`));
+        };
+        image.src = objectUrl;
+    });
+}
+
+async function uploadSelectedImages(form) {
+    const coverFile = form.elements.coverImage.files?.[0];
+    const galleryFiles = Array.from(form.elements.galleryImages.files || []);
+
+    if (galleryFiles.length > MAX_GALLERY_IMAGES) {
+        throw new Error(`Select no more than ${MAX_GALLERY_IMAGES} gallery images.`);
+    }
+
+    const files = coverFile ? [coverFile, ...galleryFiles] : galleryFiles;
+    if (files.length === 0) {
+        return { coverUrl: state.selectedApartment?.imageUrl || '', galleryUrls: undefined };
+    }
+
+    const processedFiles = await Promise.all(files.map(compressImage));
+    const result = await uploadAdminApartmentImages(processedFiles);
+    const urls = [...(result?.urls || [])];
+    const coverUrl = coverFile ? urls.shift() : state.selectedApartment?.imageUrl || '';
+
+    if (!coverUrl) {
+        throw new Error('A cover image is required.');
+    }
+
+    return { coverUrl, galleryUrls: urls };
 }
 
 function openModal(config) {
@@ -426,11 +486,11 @@ function bindFilterControls() {
 }
 
 function bindImagePreview() {
-    const imageInput = document.getElementById('apartmentImageUrlInput');
+    const imageInput = document.getElementById('apartmentCoverImageInput');
     const nameInput = document.querySelector('#apartmentForm input[name="name"]');
 
     if (imageInput instanceof HTMLInputElement) {
-        imageInput.addEventListener('input', updateImagePreview);
+        imageInput.addEventListener('change', updateImagePreview);
     }
 
     if (nameInput instanceof HTMLInputElement) {
@@ -460,6 +520,12 @@ function bindApartmentFormActions() {
         saveButton.textContent = publicId ? 'Updating...' : 'Creating...';
 
         try {
+            const uploadedImages = await uploadSelectedImages(form);
+            payload.imageUrl = uploadedImages.coverUrl;
+            if (uploadedImages.galleryUrls !== undefined) {
+                payload.gallery = uploadedImages.galleryUrls;
+            }
+
             const result = publicId
                 ? await updateAdminApartment(publicId, payload)
                 : await createAdminApartment(payload);

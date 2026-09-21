@@ -54,7 +54,7 @@ export async function adminRequest(route, options = {}) {
     };
 
     // Avoid forcing Content-Type on requests without body to reduce unnecessary CORS preflight noise.
-    if (options.body !== undefined && options.body !== null && !('Content-Type' in requestHeaders)) {
+    if (options.body !== undefined && options.body !== null && !(options.body instanceof FormData) && !('Content-Type' in requestHeaders)) {
         requestHeaders['Content-Type'] = 'application/json';
     }
 
@@ -233,6 +233,16 @@ export function updateAdminApartment(publicId, payload) {
     return adminRequest(`apartments/${encodeURIComponent(String(publicId))}`, {
         method: 'PATCH',
         body: JSON.stringify(payload)
+    });
+}
+
+export function uploadAdminApartmentImages(files) {
+    const body = new FormData();
+    files.forEach((file) => body.append('images[]', file, file.name));
+
+    return adminRequest('apartments/upload-images', {
+        method: 'POST',
+        body
     });
 }
 
