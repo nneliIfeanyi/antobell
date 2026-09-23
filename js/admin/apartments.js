@@ -180,6 +180,10 @@ function selectedPublicId() {
     return state.selectedApartment?.publicId || '';
 }
 
+function isApartmentActive(apartment) {
+    return apartment?.isActive !== false && apartment?.isActive !== 0 && apartment?.isActive !== '0';
+}
+
 function imagePreviewMarkup(imageUrl, apartmentName) {
     if (!imageUrl) {
         return `
@@ -299,7 +303,7 @@ function apartmentFormMarkup(selected) {
             <label class="block space-y-2"><span class="text-sm font-medium text-slate-700">Gallery images</span><input id="apartmentGalleryImagesInput" name="galleryImages" type="file" accept="image/jpeg,image/png,image/webp" multiple class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500" /><span class="block text-xs text-slate-500">Select up to ${MAX_GALLERY_IMAGES} images. Selecting new files replaces the current gallery.</span></label>
             <div class="flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
                 <button id="resetApartmentFormButton" type="button" class="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-auto">Cancel</button>
-                ${selected ? '<button id="deactivateApartmentButton" type="button" class="inline-flex w-full items-center justify-center rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-700 sm:w-auto">Deactivate</button><button id="hardDeleteApartmentButton" type="button" class="inline-flex w-full items-center justify-center rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-700 sm:w-auto">Hard delete</button>' : ''}
+                ${selected ? `${isApartmentActive(selected) ? '<button id="deactivateApartmentButton" type="button" class="inline-flex w-full items-center justify-center rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-700 sm:w-auto">Deactivate</button>' : '<button id="activateApartmentButton" type="button" class="inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 sm:w-auto">Activate</button>'}<button id="hardDeleteApartmentButton" type="button" class="inline-flex w-full items-center justify-center rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-700 sm:w-auto">Hard delete</button>` : ''}
                 <button id="saveApartmentButton" type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-glow transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto">${selected ? 'Update apartment' : 'Create apartment'}</button>
             </div>
         </form>
@@ -768,6 +772,7 @@ function bindApartmentFormActions() {
     const saveButton = document.getElementById('saveApartmentButton');
     const resetButton = document.getElementById('resetApartmentFormButton');
     const deactivateButton = document.getElementById('deactivateApartmentButton');
+    const activateButton = document.getElementById('activateApartmentButton');
     const hardDeleteButton = document.getElementById('hardDeleteApartmentButton');
 
     if (!(form instanceof HTMLFormElement) || !(saveButton instanceof HTMLButtonElement)) {
@@ -830,6 +835,28 @@ function bindApartmentFormActions() {
                 message: 'This will remove the apartment from active listings but keep its records available for later recovery.',
                 confirmLabel: 'Deactivate apartment',
                 variant: 'warning',
+                requiresText: false,
+                expectedText: ''
+            });
+        });
+    }
+
+    if (activateButton instanceof HTMLButtonElement) {
+        activateButton.addEventListener('click', () => {
+            const publicId = selectedPublicId();
+            if (!publicId) {
+                showToast('Select an apartment to activate.', 'error');
+                return;
+            }
+
+            openModal({
+                action: 'activate',
+                publicId,
+                title: 'Activate apartment',
+                eyebrow: 'Confirmation required',
+                message: 'This will restore the apartment to active listings.',
+                confirmLabel: 'Activate apartment',
+                variant: 'success',
                 requiresText: false,
                 expectedText: ''
             });
@@ -949,6 +976,11 @@ function bindModalActions() {
                 if (modal.action === 'deactivate') {
                     await deactivateAdminApartment(modal.publicId);
                     showToast('Apartment deactivated.', 'success');
+                }
+
+                if (modal.action === 'activate') {
+                    await updateAdminApartment(modal.publicId, { isActive: true });
+                    showToast('Apartment activated.', 'success');
                 }
 
                 if (modal.action === 'hard-delete') {
