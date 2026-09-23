@@ -45,7 +45,7 @@ function buildSettingsPage() {
     return `
         <div class="min-h-screen bg-admin-shell">
             ${renderAdminHeader({ title: 'Site settings', activeView: 'settings', adminName })}
-            <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            <main class="min-w-0 px-4 py-8 sm:px-6 lg:ml-64 lg:px-8 2xl:px-10">
                 <section class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
                     <article class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
                         <p class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-700">Booking policy</p>

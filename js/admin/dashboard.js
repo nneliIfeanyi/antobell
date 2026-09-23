@@ -56,7 +56,7 @@ function buildDashboardPage(admin, summaryData, queueData) {
     return `
         <div class="min-h-screen bg-admin-shell">
             ${renderAdminHeader({ title: 'Operations dashboard', activeView: 'dashboard', adminName: admin.fullName })}
-            <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            <main class="min-w-0 px-4 py-8 sm:px-6 lg:ml-64 lg:px-8 2xl:px-10">
                 <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
                     <article class="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-soft">
                         <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Active apartments</p>

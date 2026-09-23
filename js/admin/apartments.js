@@ -22,12 +22,28 @@ const APARTMENT_FILTER_DEBOUNCE_MS = 300;
 const MAX_GALLERY_IMAGES = 4;
 const MAX_IMAGE_DIMENSION = 2000;
 const IMAGE_QUALITY = 0.82;
+
+function dateInputValue(date = new Date()) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function dateAfterDays(days) {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    return dateInputValue(date);
+}
+
 const state = {
     admin: null,
     apartments: [],
     filters: {
         search: '',
-        active: 'all'
+        active: 'all',
+        availabilityStart: dateInputValue(),
+        availabilityEnd: dateAfterDays(30)
     },
     selectedApartment: null,
     modal: null,
@@ -58,6 +74,78 @@ function statusBadge(isActive) {
     }
 
     return '<span class="inline-flex rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-rose-700">Inactive</span>';
+}
+
+function availabilityBadge(availability) {
+    const status = String(availability?.status || 'available');
+    const styles = {
+        available: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+        booked: 'border-blue-200 bg-blue-50 text-blue-700',
+        occupied: 'border-rose-200 bg-rose-50 text-rose-700',
+        pending_payment: 'border-amber-200 bg-amber-50 text-amber-700'
+    };
+    const labels = {
+        available: 'Available',
+        booked: 'Booked',
+        occupied: 'Occupied today',
+        pending_payment: 'Pending payment'
+    };
+
+    return `<span class="inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] ${styles[status] || styles.available}">${labels[status] || 'Available'}</span>`;
+}
+
+function formatStayDate(value) {
+    if (!value) {
+        return '';
+    }
+
+    const date = new Date(`${value}T00:00:00`);
+    return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+    }).format(date);
+}
+
+function availabilitySummaryMarkup(availability) {
+    const bookings = Array.isArray(availability?.bookings) ? availability.bookings : [];
+    if (!bookings.length) {
+        return '<p class="mt-2 text-xs text-slate-500">No stay overlaps this date range.</p>';
+    }
+
+    return `<div class="mt-2 space-y-1.5">${bookings.slice(0, 2).map((booking) => `
+        <p class="text-xs leading-5 text-slate-600"><span class="font-semibold text-slate-800">${escapeHtml(booking.guestName)}</span><br />${formatStayDate(booking.checkIn)} - ${formatStayDate(booking.checkOut)}</p>
+    `).join('')}${bookings.length > 2 ? `<p class="text-xs font-semibold text-slate-500">+${bookings.length - 2} more stay${bookings.length === 3 ? '' : 's'}</p>` : ''}</div>`;
+}
+
+function availabilityPanelMarkup(apartment) {
+    const availability = apartment?.availability;
+    const bookings = Array.isArray(availability?.bookings) ? availability.bookings : [];
+    if (!availability) {
+        return '';
+    }
+
+    return `
+        <section class="mt-6 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Stay availability</p>
+                    <p class="mt-2 text-sm text-slate-600">${formatStayDate(availability.startDate)} - ${formatStayDate(availability.endDate)}</p>
+                </div>
+                ${availabilityBadge(availability)}
+            </div>
+            ${bookings.length ? `<div class="mt-4 space-y-3">${bookings.map((booking) => `
+                <div class="rounded-xl border border-slate-200 bg-white px-3 py-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <p class="text-sm font-semibold text-slate-900">${escapeHtml(booking.guestName)}</p>
+                        <span class="text-xs font-medium uppercase tracking-[0.12em] text-slate-500">${escapeHtml(booking.status.replace('_', ' '))}</span>
+                    </div>
+                    <p class="mt-1 text-xs text-slate-600">${formatStayDate(booking.checkIn)} - ${formatStayDate(booking.checkOut)}</p>
+                    <p class="mt-1 text-xs text-slate-500">Booking ${escapeHtml(booking.bookingNumber)} · ${escapeHtml(booking.paymentStatus)}</p>
+                </div>
+            `).join('')}</div>` : '<p class="mt-4 text-sm text-slate-500">No bookings overlap this date range.</p>'}
+        </section>
+    `;
 }
 
 function collectListFromText(text) {
@@ -113,6 +201,25 @@ function buildModalMarkup() {
         return '';
     }
 
+    if (state.modal.type === 'editor') {
+        const selected = state.selectedApartment;
+        const isView = state.modal.mode === 'view';
+        return `
+            <div id="adminModalOverlay" class="fixed inset-0 z-[80] overflow-y-auto bg-slate-950/60 px-4 py-6 sm:py-10">
+                <div class="mx-auto w-full max-w-5xl rounded-[2rem] border border-slate-200 bg-white p-6 shadow-2xl sm:p-8">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">${isView ? 'Apartment details' : selected ? 'Edit apartment' : 'New apartment'}</p>
+                            <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-900">${escapeHtml(selected?.name || (isView ? 'Apartment' : 'Add apartment'))}</h2>
+                        </div>
+                        <button id="adminApartmentModalCloseButton" type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50" aria-label="Close apartment dialog">&times;</button>
+                    </div>
+                    ${isView ? apartmentViewMarkup(selected) : apartmentFormMarkup(selected)}
+                </div>
+            </div>
+        `;
+    }
+
     return `
         <div id="adminModalOverlay" class="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/60 px-4">
             <div class="w-full max-w-lg rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
@@ -134,7 +241,72 @@ function buildModalMarkup() {
     `;
 }
 
-function buildApartmentsPage() {
+function apartmentViewMarkup(apartment) {
+    if (!apartment) {
+        return '<p class="mt-6 text-sm text-slate-600">Apartment details are unavailable.</p>';
+    }
+
+    return `
+        <div class="mt-6 grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
+            <div class="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+                <img src="${escapeHtml(apartment.imageUrl || '')}" alt="${escapeHtml(apartment.name)}" class="h-72 w-full object-cover" />
+            </div>
+            <div class="space-y-5">
+                <div class="flex flex-wrap items-center gap-2">${statusBadge(apartment.isActive)}${availabilityBadge(apartment.availability)}${apartment.isFeatured ? '<span class="inline-flex rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-brand-700">Featured</span>' : ''}</div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div><p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Location</p><p class="mt-1 text-sm text-slate-900">${escapeHtml(apartment.location)}</p></div>
+                    <div><p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Price</p><p class="mt-1 text-sm text-slate-900">${formatCurrency(apartment.pricePerNight || 0)} per night</p></div>
+                    <div><p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Rooms</p><p class="mt-1 text-sm text-slate-900">${apartment.bedrooms} bedroom${apartment.bedrooms === 1 ? '' : 's'} · ${apartment.bathrooms} bathroom${apartment.bathrooms === 1 ? '' : 's'}</p></div>
+                    <div><p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Rating</p><p class="mt-1 text-sm text-slate-900">${Number(apartment.rating || 0).toFixed(1)} / 5</p></div>
+                </div>
+                <div><p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Description</p><p class="mt-1 text-sm leading-6 text-slate-700">${escapeHtml(apartment.description)}</p></div>
+            </div>
+        </div>
+        ${availabilityPanelMarkup(apartment)}
+        <div class="mt-6 flex justify-end">
+            <button id="adminApartmentModalCloseButtonBottom" type="button" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Close</button>
+        </div>
+    `;
+}
+
+function apartmentFormMarkup(selected) {
+    return `
+        <form id="apartmentForm" class="mt-6 space-y-4">
+            <input type="hidden" name="publicId" value="${escapeHtml(selected?.publicId || '')}" />
+            <div class="grid gap-4 sm:grid-cols-2">
+                <label class="block space-y-2"><span class="text-sm font-medium text-slate-700">Name</span><input name="name" type="text" value="${escapeHtml(selected?.name || '')}" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500" required /></label>
+                <label class="block space-y-2"><span class="text-sm font-medium text-slate-700">Badge</span><input name="badge" type="text" value="${escapeHtml(selected?.badge || '')}" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500" /></label>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+                <label class="block space-y-2"><span class="text-sm font-medium text-slate-700">Location</span><input name="location" type="text" value="${escapeHtml(selected?.location || '')}" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500" required /></label>
+                <label class="block space-y-2"><span class="text-sm font-medium text-slate-700">Address</span><input name="address" type="text" value="${escapeHtml(selected?.address || '')}" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500" required /></label>
+            </div>
+            <label class="block space-y-2"><span class="text-sm font-medium text-slate-700">Description</span><textarea name="description" rows="3" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500" required>${escapeHtml(selected?.description || '')}</textarea></label>
+            <div class="grid gap-4 sm:grid-cols-2">
+                <label class="block space-y-2"><span class="text-sm font-medium text-slate-700">Cover image</span><input id="apartmentCoverImageInput" name="coverImage" type="file" accept="image/jpeg,image/png,image/webp" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500" ${selected ? '' : 'required'} /><span class="block text-xs text-slate-500">Choose a new file to replace the current cover image.</span></label>
+                <label class="block space-y-2"><span class="text-sm font-medium text-slate-700">Price per night (NGN)</span><input name="pricePerNight" type="number" min="1" step="1" value="${escapeHtml(String(selected?.pricePerNight || ''))}" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500" required /></label>
+            </div>
+            <div id="apartmentImagePreview" class="sm:block"></div>
+            <div class="grid gap-4 sm:grid-cols-4">
+                <label class="block space-y-2"><span class="text-sm font-medium text-slate-700">Rating</span><input name="rating" type="number" min="0" max="5" step="0.1" value="${escapeHtml(String(selected?.rating || ''))}" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500" required /></label>
+                <label class="block space-y-2"><span class="text-sm font-medium text-slate-700">Bedrooms</span><input name="bedrooms" type="number" min="1" step="1" value="${escapeHtml(String(selected?.bedrooms || ''))}" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500" required /></label>
+                <label class="block space-y-2"><span class="text-sm font-medium text-slate-700">Bathrooms</span><input name="bathrooms" type="number" min="1" step="1" value="${escapeHtml(String(selected?.bathrooms || ''))}" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500" required /></label>
+                <label class="block space-y-2"><span class="text-sm font-medium text-slate-700">Status</span><select name="isActive" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500"><option value="1" ${selected?.isActive !== false ? 'selected' : ''}>Active</option><option value="0" ${selected?.isActive === false ? 'selected' : ''}>Inactive</option></select></label>
+            </div>
+            <label class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3"><input name="isFeatured" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" ${selected?.isFeatured ? 'checked' : ''} /><span><span class="block text-sm font-medium text-slate-700">Feature on homepage</span><span class="mt-1 block text-xs text-slate-500">Only four active apartments can be featured.</span></span></label>
+            <label class="block space-y-2"><span class="text-sm font-medium text-slate-700">Amenities (one per line)</span><textarea name="amenities" rows="3" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500">${escapeHtml((selected?.amenities || []).join('\n'))}</textarea></label>
+            <label class="block space-y-2"><span class="text-sm font-medium text-slate-700">House rules (one per line)</span><textarea name="houseRules" rows="3" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500">${escapeHtml((selected?.houseRules || []).join('\n'))}</textarea></label>
+            <label class="block space-y-2"><span class="text-sm font-medium text-slate-700">Gallery images</span><input id="apartmentGalleryImagesInput" name="galleryImages" type="file" accept="image/jpeg,image/png,image/webp" multiple class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand-500" /><span class="block text-xs text-slate-500">Select up to ${MAX_GALLERY_IMAGES} images. Selecting new files replaces the current gallery.</span></label>
+            <div class="flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+                <button id="resetApartmentFormButton" type="button" class="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-auto">Cancel</button>
+                ${selected ? '<button id="deactivateApartmentButton" type="button" class="inline-flex w-full items-center justify-center rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-700 sm:w-auto">Deactivate</button><button id="hardDeleteApartmentButton" type="button" class="inline-flex w-full items-center justify-center rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-700 sm:w-auto">Hard delete</button>' : ''}
+                <button id="saveApartmentButton" type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-glow transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto">${selected ? 'Update apartment' : 'Create apartment'}</button>
+            </div>
+        </form>
+    `;
+}
+
+function buildApartmentsPageLegacy() {
     const admin = state.admin;
     const apartments = state.apartments;
     const selected = state.selectedApartment;
@@ -144,7 +316,7 @@ function buildApartmentsPage() {
     return `
         <div class="min-h-screen bg-admin-shell">
             ${renderAdminHeader({ title: 'Apartments management', activeView: 'apartments', adminName: admin?.fullName || '' })}
-            <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            <main class="min-w-0 px-4 py-8 sm:px-6 lg:ml-64 lg:px-8 2xl:px-10">
                 <section class="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
                     <article class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
                         <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -241,6 +413,7 @@ function buildApartmentsPage() {
                                 ${selected ? '<button id="hardDeleteApartmentButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-700 sm:w-auto">Hard delete</button>' : ''}
                             </div>
                         </form>
+                        ${availabilityPanelMarkup(selected)}
                     </article>
                     <article class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -250,7 +423,7 @@ function buildApartmentsPage() {
                             </div>
                             <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">Signed in as ${escapeHtml(admin?.fullName || '')}</div>
                         </div>
-                        <form id="apartmentFiltersForm" class="mt-5 grid gap-3 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 sm:grid-cols-[1fr_180px_auto] sm:items-end">
+                        <form id="apartmentFiltersForm" class="mt-5 grid gap-3 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 sm:grid-cols-[1fr_150px_150px_150px_auto] sm:items-end">
                             <label class="block space-y-2">
                                 <span class="text-sm font-medium text-slate-700">Search</span>
                                 <input name="search" type="text" value="${escapeHtml(state.filters.search)}" placeholder="Search by name, location, or public ID" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-brand-500" />
@@ -262,6 +435,14 @@ function buildApartmentsPage() {
                                     <option value="1" ${state.filters.active === '1' ? 'selected' : ''}>Active</option>
                                     <option value="0" ${state.filters.active === '0' ? 'selected' : ''}>Inactive</option>
                                 </select>
+                            </label>
+                            <label class="block space-y-2">
+                                <span class="text-sm font-medium text-slate-700">From</span>
+                                <input name="availabilityStart" type="date" value="${escapeHtml(state.filters.availabilityStart)}" class="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-brand-500" />
+                            </label>
+                            <label class="block space-y-2">
+                                <span class="text-sm font-medium text-slate-700">Until</span>
+                                <input name="availabilityEnd" type="date" value="${escapeHtml(state.filters.availabilityEnd)}" class="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-brand-500" />
                             </label>
                             <button id="resetApartmentFiltersButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Reset</button>
                         </form>
@@ -276,6 +457,7 @@ function buildApartmentsPage() {
                                         <th class="pb-3 font-medium">Price</th>
                                         <th class="pb-3 font-medium">Rating</th>
                                         <th class="pb-3 font-medium">Status</th>
+                                        <th class="pb-3 font-medium">Availability</th>
                                         <th class="pb-3 font-medium">Action</th>
                                     </tr>
                                 </thead>
@@ -289,19 +471,69 @@ function buildApartmentsPage() {
                                             <td class="py-4">${formatCurrency(apartment.pricePerNight || 0)}</td>
                                             <td class="py-4">${Number(apartment.rating || 0).toFixed(1)}</td>
                                             <td class="py-4"><div class="space-y-2">${statusBadge(apartment.isActive)}${apartment.isFeatured ? '<span class="block text-xs font-semibold uppercase tracking-[0.16em] text-brand-700">Featured</span>' : ''}</div></td>
+                                            <td class="min-w-52 py-4"><div>${availabilityBadge(apartment.availability)}${availabilitySummaryMarkup(apartment.availability)}</div></td>
                                             <td class="py-4">
                                                 <button type="button" data-edit-apartment="${escapeHtml(apartment.publicId)}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50">Edit</button>
                                             </td>
                                         </tr>
                                     `).join('') : `
                                         <tr>
-                                            <td colspan="5" class="py-10 text-center text-slate-500">No apartments found for the current filters.</td>
+                                            <td colspan="6" class="py-10 text-center text-slate-500">No apartments found for the current filters.</td>
                                         </tr>
                                     `}
                                 </tbody>
                             </table>
                         </div>
                     </article>
+                </section>
+            </main>
+            ${buildModalMarkup()}
+        </div>
+    `;
+}
+
+function buildApartmentsPage() {
+    const admin = state.admin;
+    const apartments = state.apartments;
+
+    return `
+        <div class="min-h-screen bg-admin-shell">
+            ${renderAdminHeader({ title: 'Apartments management', activeView: 'apartments', adminName: admin?.fullName || '' })}
+            <main class="min-w-0 px-4 py-8 sm:px-6 lg:ml-64 lg:px-8 2xl:px-10">
+                <section class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
+                    <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">Inventory workspace</p>
+                            <h2 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Apartments</h2>
+                            <p class="mt-2 text-sm text-slate-600">Manage listings, inspect stay dates, and keep room availability visible at a glance.</p>
+                        </div>
+                        <button id="addApartmentButton" type="button" class="inline-flex items-center justify-center rounded-xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white shadow-glow transition hover:bg-brand-700">+ Add apartment</button>
+                    </div>
+                    <form id="apartmentFiltersForm" class="mt-7 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[minmax(220px,1fr)_160px_160px_160px_auto] md:items-end">
+                        <label class="block space-y-2"><span class="text-sm font-medium text-slate-700">Search</span><input name="search" type="text" value="${escapeHtml(state.filters.search)}" placeholder="Name, location, or ID" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-brand-500" /></label>
+                        <label class="block space-y-2"><span class="text-sm font-medium text-slate-700">Listing status</span><select name="active" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-brand-500"><option value="all" ${state.filters.active === 'all' ? 'selected' : ''}>All</option><option value="1" ${state.filters.active === '1' ? 'selected' : ''}>Active</option><option value="0" ${state.filters.active === '0' ? 'selected' : ''}>Inactive</option></select></label>
+                        <label class="block space-y-2"><span class="text-sm font-medium text-slate-700">From</span><input name="availabilityStart" type="date" value="${escapeHtml(state.filters.availabilityStart)}" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-brand-500" /></label>
+                        <label class="block space-y-2"><span class="text-sm font-medium text-slate-700">Until</span><input name="availabilityEnd" type="date" value="${escapeHtml(state.filters.availabilityEnd)}" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-brand-500" /></label>
+                        <button id="resetApartmentFiltersButton" type="button" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Reset</button>
+                    </form>
+                    <div class="mt-6 flex items-center justify-between gap-4 text-sm text-slate-500"><p>${apartments.length} apartment${apartments.length === 1 ? '' : 's'} shown</p><p>Range: ${formatStayDate(state.filters.availabilityStart)} - ${formatStayDate(state.filters.availabilityEnd)}</p></div>
+                    <div class="mt-4 overflow-x-auto rounded-2xl border border-slate-200">
+                        <table class="min-w-[980px] w-full divide-y divide-slate-200 text-sm">
+                            <thead class="bg-slate-50"><tr class="text-left text-slate-500"><th class="px-5 py-3 font-medium">Apartment</th><th class="px-5 py-3 font-medium">Rate</th><th class="px-5 py-3 font-medium">Rating</th><th class="px-5 py-3 font-medium">Listing</th><th class="px-5 py-3 font-medium">Room availability</th><th class="px-5 py-3 text-right font-medium">Actions</th></tr></thead>
+                            <tbody class="divide-y divide-slate-100 text-slate-700" id="apartmentRows">
+                                ${apartments.length ? apartments.map((apartment) => `
+                                    <tr class="transition hover:bg-slate-50 ${selectedPublicId() === apartment.publicId ? 'bg-brand-50/60' : ''}">
+                                        <td class="px-5 py-4"><div class="flex min-w-56 items-center gap-3"><img src="${escapeHtml(apartment.imageUrl || '')}" alt="" class="h-12 w-16 rounded-lg object-cover" /><div><p class="font-semibold text-slate-900">${escapeHtml(apartment.name)}</p><p class="mt-1 text-xs text-slate-500">${escapeHtml(apartment.publicId)} · ${escapeHtml(apartment.location)}</p></div></div></td>
+                                        <td class="whitespace-nowrap px-5 py-4 font-medium">${formatCurrency(apartment.pricePerNight || 0)}<span class="block text-xs font-normal text-slate-500">per night</span></td>
+                                        <td class="px-5 py-4">${Number(apartment.rating || 0).toFixed(1)} / 5</td>
+                                        <td class="px-5 py-4"><div class="space-y-2">${statusBadge(apartment.isActive)}${apartment.isFeatured ? '<span class="block text-xs font-semibold uppercase tracking-[0.14em] text-brand-700">Featured</span>' : ''}</div></td>
+                                        <td class="min-w-64 px-5 py-4"><div>${availabilityBadge(apartment.availability)}${availabilitySummaryMarkup(apartment.availability)}</div></td>
+                                        <td class="whitespace-nowrap px-5 py-4 text-right"><div class="flex justify-end gap-2"><button type="button" data-view-apartment="${escapeHtml(apartment.publicId)}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50">View</button><button type="button" data-edit-apartment="${escapeHtml(apartment.publicId)}" class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-800">Edit</button></div></td>
+                                    </tr>
+                                `).join('') : '<tr><td colspan="6" class="px-5 py-12 text-center text-slate-500">No apartments found for the current filters.</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
                 </section>
             </main>
             ${buildModalMarkup()}
@@ -401,9 +633,38 @@ function renderPage() {
     bindFilterControls();
     bindApartmentFormActions();
     bindApartmentListActions();
+    bindApartmentModalActions();
     bindImagePreview();
     bindModalActions();
     updateImagePreview();
+}
+
+function bindApartmentModalActions() {
+    if (!state.modal || state.modal.type !== 'editor') {
+        return;
+    }
+
+    const closeButtons = document.querySelectorAll('#adminApartmentModalCloseButton, #adminApartmentModalCloseButtonBottom');
+    closeButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            const wasView = state.modal.mode === 'view';
+            state.modal = null;
+            if (!wasView) {
+                state.selectedApartment = null;
+            }
+            renderPage();
+        });
+    });
+
+    const overlay = document.getElementById('adminModalOverlay');
+    if (overlay) {
+        overlay.addEventListener('click', (event) => {
+            if (event.target === overlay) {
+                state.modal = null;
+                renderPage();
+            }
+        });
+    }
 }
 
 function bindTopActions() {
@@ -437,6 +698,8 @@ function clearApartmentFilterDebounce() {
 async function applyApartmentFilters(filterForm) {
     state.filters.search = String(filterForm.elements.search.value || '').trim();
     state.filters.active = String(filterForm.elements.active.value || 'all');
+    state.filters.availabilityStart = String(filterForm.elements.availabilityStart.value || '').trim();
+    state.filters.availabilityEnd = String(filterForm.elements.availabilityEnd.value || '').trim();
     await refreshApartmentsList();
     renderPage();
 }
@@ -454,7 +717,7 @@ function bindFilterControls() {
 
         filterForm.addEventListener('change', async (event) => {
             const target = event.target;
-            if (!(target instanceof HTMLSelectElement)) {
+            if (!(target instanceof HTMLSelectElement) && !(target instanceof HTMLInputElement)) {
                 return;
             }
 
@@ -479,6 +742,8 @@ function bindFilterControls() {
             clearApartmentFilterDebounce();
             state.filters.search = '';
             state.filters.active = 'all';
+            state.filters.availabilityStart = dateInputValue();
+            state.filters.availabilityEnd = dateAfterDays(30);
             await refreshApartmentsList();
             renderPage();
         });
@@ -600,19 +865,30 @@ function bindApartmentListActions() {
         return;
     }
 
+    const addButton = document.getElementById('addApartmentButton');
+    if (addButton instanceof HTMLButtonElement) {
+        addButton.addEventListener('click', () => {
+            state.selectedApartment = null;
+            state.modal = { type: 'editor', mode: 'edit' };
+            renderPage();
+        });
+    }
+
     rows.addEventListener('click', async (event) => {
         const target = event.target;
         if (!(target instanceof HTMLElement)) {
             return;
         }
 
-        const button = target.closest('[data-edit-apartment]');
+        const button = target.closest('[data-edit-apartment], [data-view-apartment]');
         if (!(button instanceof HTMLButtonElement)) {
             return;
         }
 
         const publicId = String(button.getAttribute('data-edit-apartment') || '').trim();
-        if (!publicId) {
+        const viewPublicId = String(button.getAttribute('data-view-apartment') || '').trim();
+        const requestedPublicId = publicId || viewPublicId;
+        if (!requestedPublicId) {
             return;
         }
 
@@ -621,11 +897,12 @@ function bindApartmentListActions() {
         button.textContent = 'Loading...';
 
         try {
-            const result = await getAdminApartment(publicId);
+            const result = await getAdminApartment(requestedPublicId, state.filters);
             if (!result?.apartment) {
                 throw new Error('Apartment detail unavailable.');
             }
             state.selectedApartment = result.apartment;
+            state.modal = { type: 'editor', mode: viewPublicId ? 'view' : 'edit' };
             renderPage();
         } catch (error) {
             showToast(error instanceof Error ? error.message : 'Unable to load apartment details.', 'error');
@@ -697,9 +974,16 @@ async function refreshApartmentsList() {
     if (state.filters.active === '1' || state.filters.active === '0') {
         params.active = Number(state.filters.active);
     }
+    params.availabilityStart = state.filters.availabilityStart;
+    params.availabilityEnd = state.filters.availabilityEnd;
 
     const apartmentsData = await getAdminApartments(params);
     const allApartments = Array.isArray(apartmentsData?.apartments) ? apartmentsData.apartments : [];
+
+    if (apartmentsData?.availabilityStart && apartmentsData?.availabilityEnd) {
+        state.filters.availabilityStart = apartmentsData.availabilityStart;
+        state.filters.availabilityEnd = apartmentsData.availabilityEnd;
+    }
 
     const searchTerm = String(state.filters.search || '').trim().toLowerCase();
     if (searchTerm !== '') {
@@ -716,7 +1000,7 @@ async function refreshApartmentsList() {
     if (state.selectedApartment) {
         const selectedInList = state.apartments.find((item) => item.publicId === state.selectedApartment.publicId);
         if (selectedInList) {
-            const detailData = await getAdminApartment(selectedInList.publicId);
+            const detailData = await getAdminApartment(selectedInList.publicId, state.filters);
             state.selectedApartment = detailData?.apartment || selectedInList;
         } else {
             state.selectedApartment = null;

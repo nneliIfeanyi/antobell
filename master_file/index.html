@@ -184,20 +184,21 @@
   <script>
     (() => {
       const CEO_API_CONFIG = {
-        MODE: 'live', // 'local' or 'live'
         LIVE_BASE_URL: 'https://api.leadstar.com.ng/antobell/ceo.php'
       };
 
+      function isLocalEnvironment() {
+        return ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+      }
+
       function ceoApiBaseUrl() {
-        if (CEO_API_CONFIG.MODE === 'live') {
+        if (!isLocalEnvironment()) {
           return CEO_API_CONFIG.LIVE_BASE_URL;
         }
 
-        if (window.location.pathname.includes('/master_file/')) {
-          return '../api/ceo.php';
-        }
-
-        return './api/ceo.php';
+        return window.location.pathname.includes('/master_file/')
+          ? '../api/ceo.php'
+          : './api/ceo.php';
       }
 
       const SESSION_KEY = 'antobell_ceo_pin';

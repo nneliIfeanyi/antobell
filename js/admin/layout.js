@@ -4,10 +4,10 @@
 
 function navLinkClass(isActive) {
     if (isActive) {
-        return 'inline-flex items-center justify-center rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-glow';
+        return 'inline-flex w-full items-center justify-start rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-glow';
     }
 
-    return 'inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50';
+    return 'inline-flex w-full items-center justify-start rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50';
 }
 
 function navLinksMarkup(activeView) {
@@ -45,32 +45,42 @@ export function renderAdminHeader(config) {
         : '';
 
     return `
-        <header class="border-b border-slate-200 bg-white/90 backdrop-blur-xl">
-            <div class="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
-                <div class="flex items-start justify-between gap-4">
-                    <div>
-                        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-brand-700">ANTOBELL Admin</p>
-                        <h1 class="mt-2 text-2xl font-semibold tracking-tight text-slate-900">${title}</h1>
-                    </div>
-                    <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50 md:hidden" data-admin-menu-toggle aria-expanded="false" aria-controls="adminMobileMenu" aria-label="Toggle admin menu">
+        <aside class="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-slate-200 bg-white lg:flex">
+            <div class="flex h-20 items-center border-b border-slate-200 px-6">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.22em] text-brand-700">ANTOBELL</p>
+                    <p class="mt-1 text-sm font-semibold text-slate-900">Operations console</p>
+                </div>
+            </div>
+            <nav class="flex-1 space-y-2 overflow-y-auto p-4">
+                <p class="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Workspace</p>
+                ${navLinksMarkup(activeView)}
+            </nav>
+            <div class="border-t border-slate-200 p-4">
+                ${signedInMarkup}
+                <button type="button" data-admin-logout class="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Logout</button>
+            </div>
+        </aside>
+        <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-xl lg:ml-64">
+            <div class="flex min-h-20 items-center justify-between gap-4 px-4 py-4 sm:px-6 2xl:px-8">
+                <div class="flex items-center gap-3">
+                    <button type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50 lg:hidden" data-admin-menu-toggle aria-expanded="false" aria-controls="adminMobileMenu" aria-label="Toggle admin menu">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                             <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm1 4a1 1 0 100 2h12a1 1 0 100-2H4z" clip-rule="evenodd" />
                         </svg>
                     </button>
-                </div>
-
-                <div class="mt-5 hidden items-start justify-between gap-4 md:flex">
-                    <nav class="flex flex-wrap gap-3">
-                        ${navLinksMarkup(activeView)}
-                    </nav>
-                    <div class="flex items-center gap-3">
-                        ${signedInMarkup}
-                        <button type="button" data-admin-logout class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Logout</button>
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">ANTOBELL Admin</p>
+                        <h1 class="mt-1 text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">${title}</h1>
                     </div>
                 </div>
+                <div class="hidden items-center gap-3 sm:flex lg:hidden">
+                    ${signedInMarkup}
+                    <button type="button" data-admin-logout class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Logout</button>
+                </div>
 
-                <div class="pointer-events-none fixed inset-0 z-40 hidden bg-slate-950/45 md:hidden" data-admin-menu-overlay></div>
-                <aside id="adminMobileMenu" class="fixed right-0 top-0 z-50 flex h-screen w-[86%] max-w-xs translate-x-full flex-col border-l border-slate-200 bg-white p-4 shadow-2xl transition-transform duration-300 ease-out md:hidden" data-admin-menu-panel aria-hidden="true">
+                <div class="pointer-events-none fixed inset-0 z-40 hidden bg-slate-950/45 lg:hidden" data-admin-menu-overlay></div>
+                <aside id="adminMobileMenu" class="fixed right-0 top-0 z-50 flex h-screen w-[86%] max-w-xs translate-x-full flex-col border-l border-slate-200 bg-white p-4 shadow-2xl transition-transform duration-300 ease-out lg:hidden" data-admin-menu-panel aria-hidden="true">
                     <div class="mb-4 flex items-center justify-between">
                         <p class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-700">Menu</p>
                         <button type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50" data-admin-menu-close-button aria-label="Close admin menu">

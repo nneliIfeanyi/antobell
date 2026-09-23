@@ -4,25 +4,24 @@
 /**
  * Admin API source configuration.
  *
- * How to switch:
- * - Use local API: set MODE to 'local'
- * - Use live HTTPS API: set MODE to 'live'
+ * Local XAMPP hosts use the local API; deployed hosts use the live API.
  */
 const ADMIN_API_CONFIG = {
-    MODE: 'live', // 'local' or 'live'
     LIVE_BASE_URL: 'https://api.leadstar.com.ng/antobell/admin.php'
 };
 
+function isLocalEnvironment() {
+    return ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+}
+
 function adminApiBaseUrl() {
-    if (ADMIN_API_CONFIG.MODE === 'live') {
+    if (!isLocalEnvironment()) {
         return ADMIN_API_CONFIG.LIVE_BASE_URL;
     }
 
-    if (window.location.pathname.includes('/pages/admin/')) {
-        return '../../api/admin.php';
-    }
-
-    return './api/admin.php';
+    return window.location.pathname.includes('/pages/admin/')
+        ? '../../api/admin.php'
+        : './api/admin.php';
 }
 
 /**
@@ -214,12 +213,31 @@ export function getAdminApartments(params = {}) {
         query.set('active', String(params.active));
     }
 
+    if (params.availabilityStart) {
+        query.set('availabilityStart', String(params.availabilityStart));
+    }
+
+    if (params.availabilityEnd) {
+        query.set('availabilityEnd', String(params.availabilityEnd));
+    }
+
     const suffix = query.toString() ? `?${query.toString()}` : '';
     return adminRequest(`apartments${suffix}`);
 }
 
-export function getAdminApartment(publicId) {
-    return adminRequest(`apartments/${encodeURIComponent(String(publicId))}`);
+export function getAdminApartment(publicId, params = {}) {
+    const query = new URLSearchParams();
+
+    if (params.availabilityStart) {
+        query.set('availabilityStart', String(params.availabilityStart));
+    }
+
+    if (params.availabilityEnd) {
+        query.set('availabilityEnd', String(params.availabilityEnd));
+    }
+
+    const suffix = query.toString() ? `?${query.toString()}` : '';
+    return adminRequest(`apartments/${encodeURIComponent(String(publicId))}${suffix}`);
 }
 
 export function createAdminApartment(payload) {

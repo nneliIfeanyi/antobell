@@ -3,23 +3,26 @@
  *
  * Centralized endpoint configuration and request helpers for the booking app.
  */
-// Set MODE to 'local' for XAMPP testing or 'live' for the production API.
 const API_CONFIG = {
-    MODE: 'live',
     LIVE_BASE_URL: 'https://api.leadstar.com.ng/antobell/'
 };
 
+function isLocalEnvironment() {
+    return ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+}
+
 const API = {
-    BASE_URL: API_CONFIG.MODE === 'live'
-        ? API_CONFIG.LIVE_BASE_URL
-        : (window.location.pathname.includes('/pages/') ? '../api/' : './api/'),
+    BASE_URL: isLocalEnvironment()
+        ? (window.location.pathname.includes('/pages/') ? '../api/' : './api/')
+        : API_CONFIG.LIVE_BASE_URL,
     ENDPOINTS: {
         apartments: 'apartments',
         apartment: 'apartments/',
         availability: 'booking/check',
         booking: 'booking/create',
         payment: 'payment',
-        bookingById: 'booking/'
+        bookingById: 'booking/',
+        publicSettings: 'settings/public'
     }
 };
 

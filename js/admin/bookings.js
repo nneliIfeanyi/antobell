@@ -18,10 +18,13 @@ import { bindAdminMobileMenu, enhanceResponsiveTables, renderAdminHeader } from 
 import { showToast } from '../toast.js';
 
 const app = document.getElementById('app');
+const BOOKING_PAGE_SIZE = 10;
 const state = {
     admin: null,
     bookings: [],
     selectedBooking: null,
+    search: '',
+    page: 1,
     filters: {
         status: 'all',
         paymentStatus: 'all'
@@ -88,6 +91,30 @@ function paymentBadge(status) {
 
 function selectedBookingRef() {
     return state.selectedBooking?.bookingNumber || '';
+}
+
+function filteredBookings() {
+    const search = state.search.trim().toLowerCase();
+    if (!search) {
+        return state.bookings;
+    }
+
+    return state.bookings.filter((booking) => String(booking.bookingNumber || '').toLowerCase().includes(search));
+}
+
+function paginatedBookings() {
+    const filtered = filteredBookings();
+    const totalPages = Math.max(1, Math.ceil(filtered.length / BOOKING_PAGE_SIZE));
+    state.page = Math.min(state.page, totalPages);
+    const start = (state.page - 1) * BOOKING_PAGE_SIZE;
+
+    return {
+        rows: filtered.slice(start, start + BOOKING_PAGE_SIZE),
+        total: filtered.length,
+        totalPages,
+        start: filtered.length ? start + 1 : 0,
+        end: Math.min(start + BOOKING_PAGE_SIZE, filtered.length)
+    };
 }
 
 function calculateDateDifferenceDays(startDate, endDate) {
@@ -212,20 +239,22 @@ function buildExtendStayModal(booking) {
 
 function buildBookingsPage() {
     const bookings = state.bookings;
+    const pagination = paginatedBookings();
     const selected = state.selectedBooking;
     const adminName = state.admin?.fullName || '';
 
     return `
         <div class="min-h-screen bg-admin-shell">
             ${renderAdminHeader({ title: 'Bookings management', activeView: 'bookings', adminName })}
-            <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                <section class="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-                    <article class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
+            <main class="min-w-0 px-4 py-8 sm:px-6 lg:ml-64 lg:px-8 2xl:px-10">
+                <section>
+                    <article class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
                         <div>
-                            <p class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-700">Directory</p>
-                            <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Booking records</h2>
+                            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">Reservations workspace</p>
+                            <div class="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h2 class="text-3xl font-semibold tracking-tight text-slate-900">Booking records</h2><p class="mt-2 text-sm text-slate-600">Review guest stays, payment state, and operational actions.</p></div><span class="text-sm text-slate-500">${pagination.total} booking${pagination.total === 1 ? '' : 's'} shown</span></div>
                         </div>
-                        <form id="bookingFiltersForm" class="mt-5 grid gap-3 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 md:grid-cols-[180px_180px_auto] md:items-end">
+                        <form id="bookingFiltersForm" class="mt-5 grid gap-3 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 md:grid-cols-[minmax(198px,0.9fr)_180px_180px_auto] md:items-end">
+                            <label class="block space-y-2"><span class="text-sm font-medium text-slate-700">Search booking reference</span><input id="bookingSearchInput" name="search" type="search" value="${escapeHtml(state.search)}" placeholder="e.g. AST-03C7-260923154152" autocomplete="off" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-brand-500" /></label>
                             <label class="block space-y-2">
                                 <span class="text-sm font-medium text-slate-700">Status</span>
                                 <select name="status" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-brand-500">
@@ -245,21 +274,22 @@ function buildBookingsPage() {
                                     <option value="failed" ${state.filters.paymentStatus === 'failed' ? 'selected' : ''}>Failed</option>
                                 </select>
                             </label>
-                            <button id="resetBookingFiltersButton" type="button" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Reset</button>
+                            <button id="resetBookingFiltersButton" type="button" class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Reset</button>
                         </form>
-                        <div class="mt-5 overflow-x-auto">
-                            <table id="bookingsTable" class="min-w-full divide-y divide-slate-200 text-sm">
+                        <div class="mt-6 overflow-x-auto rounded-2xl border border-slate-200">
+                            <table id="bookingsTable" class="min-w-[900px] w-full divide-y divide-slate-200 text-sm">
                                 <thead>
                                     <tr class="text-left text-slate-500">
                                         <th class="pb-3 font-medium">Booking</th>
                                         <th class="pb-3 font-medium">Guest</th>
+                                        <th class="pb-3 font-medium">Stay dates</th>
                                         <th class="pb-3 font-medium">Amount</th>
                                         <th class="pb-3 font-medium">Status</th>
-                                        <th class="pb-3 font-medium">Action</th>
+                                        <th class="pb-3 text-right font-medium">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="bookingRows" class="divide-y divide-slate-100 text-slate-700">
-                                    ${bookings.length ? bookings.map((booking) => `
+                                    ${pagination.rows.length ? pagination.rows.map((booking) => `
                                         <tr class="${selectedBookingRef() === booking.bookingNumber ? 'bg-brand-50/60' : ''}">
                                             <td class="py-4">
                                                 <p class="font-semibold text-slate-900">${escapeHtml(booking.bookingNumber)}</p>
@@ -269,6 +299,10 @@ function buildBookingsPage() {
                                                 <p>${escapeHtml(booking.guestName)}</p>
                                                 <p class="mt-1 text-xs text-slate-500">${escapeHtml(booking.guestEmail)}</p>
                                             </td>
+                                            <td class="whitespace-nowrap py-4">
+                                                <p class="font-medium text-slate-900">${escapeHtml(booking.checkIn || '-')}</p>
+                                                <p class="mt-1 text-xs text-slate-500">to ${escapeHtml(booking.checkOut || '-')}</p>
+                                            </td>
                                             <td class="py-4">${formatCurrency(booking.totalAmount || 0)}</td>
                                             <td class="py-4">
                                                 <div class="space-y-2">
@@ -276,20 +310,21 @@ function buildBookingsPage() {
                                                     <div>${paymentBadge(booking.paymentStatus)}</div>
                                                 </div>
                                             </td>
-                                            <td class="py-4">
-                                                <button type="button" data-open-booking="${escapeHtml(booking.bookingNumber)}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50">Open</button>
+                                            <td class="py-4 text-right">
+                                                <button type="button" data-open-booking="${escapeHtml(booking.bookingNumber)}" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-800">Open</button>
                                             </td>
                                         </tr>
                                     `).join('') : `
                                         <tr>
-                                            <td colspan="5" class="py-10 text-center text-slate-500">No bookings found for the current filters.</td>
+                                            <td colspan="6" class="py-10 text-center text-slate-500">No bookings found for the current filters.</td>
                                         </tr>
                                     `}
                                 </tbody>
                             </table>
                         </div>
+                        <div class="mt-4 flex flex-col gap-3 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between"><span>Showing ${pagination.start}-${pagination.end} of ${pagination.total}</span><div class="flex items-center gap-2"><button id="previousBookingPageButton" type="button" ${state.page <= 1 ? 'disabled' : ''} class="rounded-xl border border-slate-200 bg-white px-3 py-2 font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">Previous</button><span>Page ${state.page} of ${pagination.totalPages}</span><button id="nextBookingPageButton" type="button" ${state.page >= pagination.totalPages ? 'disabled' : ''} class="rounded-xl border border-slate-200 bg-white px-3 py-2 font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">Next</button></div></div>
                     </article>
-                    <aside class="space-y-6">
+                    <aside class="hidden">
                         <article class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
                             <p class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-700">Details</p>
                             <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-900">${selected ? escapeHtml(selected.bookingNumber) : 'Select a booking'}</h2>
@@ -349,6 +384,25 @@ function buildBookingsPage() {
                     </aside>
                 </section>
             </main>
+            ${selected ? bookingDetailsModalMarkup(selected) : ''}
+        </div>
+    `;
+}
+
+function bookingDetailsModalMarkup(booking) {
+    return `
+        <div id="bookingDetailsModal" class="fixed inset-0 z-[70] overflow-y-auto bg-slate-950/60 px-4 py-6 sm:py-10">
+            <div class="mx-auto w-full max-w-4xl rounded-[2rem] border border-slate-200 bg-white p-6 shadow-2xl sm:p-8">
+                <div class="flex items-start justify-between gap-4"><div><p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">Booking details</p><h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-900">${escapeHtml(booking.bookingNumber)}</h2></div><button id="closeBookingDetailsButton" type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50" aria-label="Close booking details">&times;</button></div>
+                <div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4"><p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Guest</p><p class="mt-2 font-semibold text-slate-900">${escapeHtml(booking.guestName)}</p><p class="text-sm text-slate-600">${escapeHtml(booking.guestEmail)}</p><p class="text-sm text-slate-600">${escapeHtml(booking.guestPhone)}</p></div>
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4"><p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Apartment</p><p class="mt-2 font-semibold text-slate-900">${escapeHtml(booking.apartment.name)}</p><p class="text-sm text-slate-600">${escapeHtml(booking.apartment.location)}</p></div>
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4"><p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Stay</p><p class="mt-2 text-sm text-slate-700">${escapeHtml(booking.checkIn)} to ${escapeHtml(booking.checkOut)}</p><p class="text-sm text-slate-700">${escapeHtml(String(booking.guests))} guests</p>${booking.actualCheckOut ? `<p class="mt-2 text-sm font-medium text-sky-700">Checked out: ${escapeHtml(formatDateTime(booking.actualCheckOut))}</p>` : ''}</div>
+                </div>
+                <div class="mt-5 grid gap-5 lg:grid-cols-[1fr_1fr]"><div class="rounded-2xl border ${booking.isOverdue ? 'border-rose-200 bg-rose-50' : 'border-slate-200 bg-slate-50'} p-4"><p class="font-medium text-slate-900">Status</p><div class="mt-3 flex flex-wrap gap-2">${statusBadge(booking.status)}${paymentBadge(booking.paymentStatus)}</div><p class="mt-3 text-sm ${booking.isOverdue ? 'text-rose-700' : 'text-slate-600'}">Payment due: ${formatDateTime(booking.paymentDueAt || '')}</p></div><div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700"><p class="font-medium text-slate-900">Amounts</p><p class="mt-2">Subtotal: ${formatCurrency(booking.subtotal || 0)}</p><p>Taxes: ${formatCurrency(booking.taxes || 0)}</p><p>Fees: ${formatCurrency(booking.fees || 0)}</p><p class="font-semibold text-slate-900">Total: ${formatCurrency(booking.totalAmount || 0)}</p></div></div>
+                <div class="mt-5"><p class="text-sm text-slate-500">Special requests</p><p class="mt-1 text-sm text-slate-700">${escapeHtml(booking.specialRequests || 'None')}</p></div>
+                <div class="mt-6 flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:flex-wrap sm:justify-end">${booking.paymentStatus === 'unpaid' && booking.status === 'pending_payment' ? '<button id="markPaidOnsiteButton" type="button" class="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">Mark paid onsite</button>' : ''}${booking.paymentStatus === 'unpaid' && booking.status === 'pending_payment' && booking.isOverdue ? '<button id="revokeBookingButton" type="button" class="rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-700">Revoke overdue booking</button>' : ''}${booking.status === 'confirmed' && booking.paymentStatus === 'paid' ? '<button id="checkOutNowButton" type="button" class="rounded-xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-semibold text-sky-700 hover:bg-sky-100">Check out now</button><button id="extendStayButton" type="button" class="rounded-xl border border-brand-200 bg-white px-4 py-2.5 text-sm font-semibold text-brand-700 hover:bg-brand-50">Extend stay</button>' : ''}${booking.status !== 'cancelled' ? '<button id="cancelBookingButton" type="button" class="rounded-xl border border-rose-200 bg-white px-4 py-2.5 text-sm font-semibold text-rose-700 hover:bg-rose-50">Cancel booking</button>' : ''}${booking.status === 'cancelled' && booking.paymentStatus !== 'paid' ? '<button id="restoreBookingButton" type="button" class="rounded-xl border border-brand-200 bg-white px-4 py-2.5 text-sm font-semibold text-brand-700 hover:bg-brand-50">Restore to pending payment</button>' : ''}<button id="closeBookingDetailsButtonBottom" type="button" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Close</button></div>
+            </div>
         </div>
     `;
 }
@@ -363,8 +417,61 @@ function renderPage() {
     enhanceResponsiveTables('#bookingsTable');
     bindTopActions();
     bindFilterControls();
+    bindBookingSearchAndPagination();
     bindBookingListActions();
     bindDetailActions();
+    bindBookingDetailsModal();
+}
+
+function bindBookingSearchAndPagination() {
+    const searchInput = document.getElementById('bookingSearchInput');
+    const previousButton = document.getElementById('previousBookingPageButton');
+    const nextButton = document.getElementById('nextBookingPageButton');
+
+    searchInput?.addEventListener('input', () => {
+        state.search = searchInput.value;
+        state.page = 1;
+        renderPage();
+        const refreshedInput = document.getElementById('bookingSearchInput');
+        if (refreshedInput instanceof HTMLInputElement) {
+            refreshedInput.focus();
+            refreshedInput.setSelectionRange(refreshedInput.value.length, refreshedInput.value.length);
+        }
+    });
+
+    previousButton?.addEventListener('click', () => {
+        if (state.page > 1) {
+            state.page -= 1;
+            renderPage();
+        }
+    });
+
+    nextButton?.addEventListener('click', () => {
+        const totalPages = Math.max(1, Math.ceil(filteredBookings().length / BOOKING_PAGE_SIZE));
+        if (state.page < totalPages) {
+            state.page += 1;
+            renderPage();
+        }
+    });
+}
+
+function bindBookingDetailsModal() {
+    const modal = document.getElementById('bookingDetailsModal');
+    if (!(modal instanceof HTMLElement)) {
+        return;
+    }
+
+    const close = () => {
+        state.selectedBooking = null;
+        renderPage();
+    };
+
+    document.querySelectorAll('#closeBookingDetailsButton, #closeBookingDetailsButtonBottom').forEach((button) => button.addEventListener('click', close));
+    modal.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            close();
+        }
+    });
 }
 
 function bindTopActions() {
@@ -395,6 +502,7 @@ function bindTopActions() {
 async function applyBookingFilters(filterForm) {
     state.filters.status = String(filterForm.elements.status.value || 'all');
     state.filters.paymentStatus = String(filterForm.elements.paymentStatus.value || 'all');
+    state.page = 1;
     await refreshBookingsList();
     renderPage();
 }
@@ -423,6 +531,8 @@ function bindFilterControls() {
         resetButton.addEventListener('click', async () => {
             state.filters.status = 'all';
             state.filters.paymentStatus = 'all';
+            state.search = '';
+            state.page = 1;
             await refreshBookingsList();
             renderPage();
         });
@@ -516,12 +626,13 @@ async function runBookingAction(action) {
 }
 
 function bindDetailActions() {
-    const markPaidButton = document.getElementById('markPaidOnsiteButton');
-    const revokeButton = document.getElementById('revokeBookingButton');
-    const checkOutNowButton = document.getElementById('checkOutNowButton');
-    const extendStayButton = document.getElementById('extendStayButton');
-    const cancelButton = document.getElementById('cancelBookingButton');
-    const restoreButton = document.getElementById('restoreBookingButton');
+    const detailsRoot = document.getElementById('bookingDetailsModal') || document;
+    const markPaidButton = detailsRoot.querySelector('#markPaidOnsiteButton');
+    const revokeButton = detailsRoot.querySelector('#revokeBookingButton');
+    const checkOutNowButton = detailsRoot.querySelector('#checkOutNowButton');
+    const extendStayButton = detailsRoot.querySelector('#extendStayButton');
+    const cancelButton = detailsRoot.querySelector('#cancelBookingButton');
+    const restoreButton = detailsRoot.querySelector('#restoreBookingButton');
 
     if (markPaidButton) {
         markPaidButton.addEventListener('click', async () => {
